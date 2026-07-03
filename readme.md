@@ -1,6 +1,6 @@
 7/3/26
 
-# included total job seekers: 46,920,142
+# total job seekers using indeed.com: 46,920,142
 # number of businesses that use indeed: +3.3 million
 
 
