@@ -1,3 +1,9 @@
+7/3/26
+
+# included total job seekers: 46,920,142
+# number of businesses that use indeed: +3.3 million
+
+
 7/2/26
 
 Started project using https://devpost.com/software/open-job-listings for the Build with Gemini XPRIZE hackathon. 
