@@ -127,8 +127,8 @@ We believe the current job discovery infrastructure is fundamentally misaligned 
 7/3/26
 
 Created a prototype using streamlit cloud, streamlit python 3.14.6 and: 
-streamlit==1.42.0
-pandas==2.2.3
+streamlit>=1.38.0
+pandas>=2.2.0
 
 7/3/26
 
