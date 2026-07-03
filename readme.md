@@ -1,5 +1,11 @@
 7/3/26
 
+Created a prototype using streamlit cloud, streamlit python 3.14.6 and: 
+streamlit==1.42.0
+pandas==2.2.3
+
+7/3/26
+
 # total job seekers using indeed.com: 46,920,142
 # number of businesses that use indeed: +3.3 million
 
