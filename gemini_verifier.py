@@ -1,3 +1,5 @@
+# This component isolates the backend physics first-principles verification logic using the official google-genai SDK and structured JSON outputs via pydantic.
+
 import os
 import json
 from google import genai
