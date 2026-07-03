@@ -178,7 +178,7 @@ Updated https://devpost.com/software/open-job-listings post with current state o
 Changed approach.
 Quit using gemini, google gcp and alike products. 
 
-Working with Grok becuase it's better.  Faster.
+Working with Grok because it's better.  Faster.
 Built a fast prototype with Streamlit Cloud for my indeed reverse engineering project.
 
 
