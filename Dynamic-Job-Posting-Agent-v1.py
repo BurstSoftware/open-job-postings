@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+from datetime import datetime
 
 st.set_page_config(
     page_title="Dynamic Job Posting Agent",
@@ -7,7 +9,7 @@ st.set_page_config(
 )
 
 st.title("💼 Dynamic Job Posting Agent")
-st.markdown("Generate professional, ready-to-post job listings in seconds.")
+st.markdown("Generate professional job postings + export raw inputs as CSV.")
 
 with st.form("job_form"):
     st.subheader("Company Information")
@@ -60,7 +62,7 @@ with st.form("job_form"):
             format="%.2f"
         )
 
-    st.subheader("Additional Details (Optional but Recommended)")
+    st.subheader("Additional Details (Optional)")
     
     job_description = st.text_area(
         "Job Description / Key Responsibilities",
@@ -82,23 +84,42 @@ with st.form("job_form"):
 
     submitted = st.form_submit_button("🚀 Generate Job Posting", use_container_width=True)
 
-# ==================== GENERATE POSTING ====================
+# ==================== GENERATE POSTING & CSV ====================
 if submitted:
     if not business_name or not job_title or not city or not state:
         st.error("Please fill in all required fields (marked with *)")
     else:
-        # Format location
+        # Format location & pay
         location = f"{city}, {state}"
         if zip_code:
             location += f" {zip_code}"
         
-        # Format pay
         if monthly_rate is not None:
             pay_text = f"${monthly_rate:,.2f} per month"
         else:
             pay_text = f"${hourly_rate:,.2f} per hour"
+
+        # === Collect all inputs for CSV ===
+        inputs_data = {
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Business Name": business_name,
+            "Job Title": job_title,
+            "City": city,
+            "State": state,
+            "Zip Code": zip_code,
+            "Job Type": job_type,
+            "Hourly Rate": hourly_rate,
+            "Monthly Rate": monthly_rate,
+            "Website": website,
+            "Phone": phone,
+            "Job Description": job_description,
+            "Requirements": requirements,
+            "Benefits": benefits,
+        }
         
-        # Build the dynamic job posting
+        df_inputs = pd.DataFrame([inputs_data])
+
+        # Build the posting text (same as before)
         posting = f"""# 🚀 **Now Hiring: {job_title}**
 
 **{business_name}** is currently seeking a motivated **{job_title}** to join our team in **{location}**.
@@ -115,13 +136,11 @@ if submitted:
 {job_description.strip()}
 
 """
-
         if requirements.strip():
             posting += f"""### Requirements
 {requirements.strip()}
 
 """
-
         if benefits.strip():
             posting += f"""### Benefits & Perks
 {benefits.strip()}
@@ -138,7 +157,6 @@ We look forward to receiving your application!
 *Generated with Dynamic Job Posting Agent*
 """
 
-        # Display results
         st.success("✅ Job posting generated successfully!")
         
         st.markdown("### 📋 Live Preview")
@@ -146,32 +164,39 @@ We look forward to receiving your application!
         
         st.divider()
         
-        # Copy-paste friendly version
+        # Copy area
         st.markdown("### 📋 Copy & Paste Version")
-        st.text_area(
-            "Full Job Posting (copy from here)",
-            value=posting,
-            height=450,
-            label_visibility="collapsed"
-        )
+        st.text_area("Full Job Posting", value=posting, height=400, label_visibility="collapsed")
         
-        # Download buttons
-        col_dl1, col_dl2 = st.columns(2)
+        # Download section
+        st.subheader("📤 Download Options")
+        col1, col2, col3 = st.columns(3)
         
-        with col_dl1:
+        with col1:
             st.download_button(
-                label="📥 Download as .txt",
+                label="📥 Job Posting (.txt)",
                 data=posting,
                 file_name=f"{job_title.replace(' ', '_')}_Job_Posting.txt",
                 mime="text/plain",
                 use_container_width=True
             )
         
-        with col_dl2:
+        with col2:
             st.download_button(
-                label="📥 Download as Markdown (.md)",
+                label="📥 Job Posting (.md)",
                 data=posting,
                 file_name=f"{job_title.replace(' ', '_')}_Job_Posting.md",
                 mime="text/markdown",
                 use_container_width=True
             )
+        
+        with col3:
+            st.download_button(
+                label="📥 Inputs as CSV",
+                data=df_inputs.to_csv(index=False).encode('utf-8'),
+                file_name="job_posting_inputs.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
+st.caption("Tip: You can generate multiple postings and download the CSV each time. Open the CSV in Excel/Google Sheets to view all records.")
