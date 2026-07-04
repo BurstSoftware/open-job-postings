@@ -80,40 +80,6 @@ if "jobs" not in st.session_state:
     st.session_state.jobs = pd.DataFrame([
         {
             "id": str(uuid.uuid4()),
-            "title": "Senior Python Engineer",
-            "company": "TechCorp",
-            "location": "Remote",
-            "salary": "120k–160k",
-            "skills": "Python, Django, AWS, PostgreSQL",
-            "posted": "2026-07-01",
-            "type": "Full-time",
-            "match": 94
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Growth Marketing Manager",
-            "company": "GrowthCo",
-            "location": "New York, NY",
-            "salary": "85k–115k",
-            "skills": "SEO, Content Strategy, Analytics",
-            "posted": "2026-07-02",
-            "type": "Full-time",
-            "match": 87
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Product Designer",
-            "company": "Nexus Studio",
-            "location": "San Francisco",
-            "salary": "130k–170k",
-            "skills": "Figma, User Research, Prototyping",
-            "posted": "2026-07-03",
-            "type": "Full-time",
-            "match": 91
-        },
-        # === NEW AMAZON JOB ===
-        {
-            "id": str(uuid.uuid4()),
             "title": "Amazon Associate - WMN7 Flex",
             "company": "Amazon",
             "location": "North Mankato, MN 56003",
