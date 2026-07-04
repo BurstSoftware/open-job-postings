@@ -3,11 +3,10 @@ import pandas as pd
 from datetime import datetime
 import uuid
 import re
-
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="■",
+    page_icon="■",  # Fixed: valid emoji
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -111,14 +110,14 @@ if "jobs" not in st.session_state:
             "type": "Full-time",
             "match": 91
         },
-        # === NEW AMAZON JOB ===
+        # === NEW JOB ADDED ===
         {
             "id": str(uuid.uuid4()),
-            "title": "WMN7 Flex - Amazon Associate",
+            "title": "Amazon Associate - WMN7 Flex",
             "company": "Amazon",
             "location": "North Mankato, MN 56003",
             "salary": "$19/hr",
-            "skills": "Warehouse, Flexible Schedule, Picking/Packing, >19 hrs/week",
+            "skills": "Warehouse, Picking, Packing, Flexible Schedule",
             "posted": "2026-07-04",
             "type": "Part-time",
             "match": 82
@@ -138,33 +137,28 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    # FIXED: Valid emoji icon
-    st.info("Prototype • Built with ❤ for better hiring", icon="🚀")
+    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# ====================== DISCOVER JOBS =======================
+# ====================== DISCOVER JOBS ======================
 st.markdown("### ■ Discover Your Next Role")
-
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
 with col1:
-    search = st.text_input(
-        "■ Search titles, skills, companies...",
-        placeholder="Senior Engineer, React, Remote, Amazon"
-    )
+    search = st.text_input("■ Search titles, skills, companies...", 
+                          placeholder="Senior Engineer, React, Remote, Amazon")
+
 with col2:
-    location = st.selectbox(
-        "■ Location",
-        ["All Locations", "Remote", "New York", "San Francisco", "London", "North Mankato"]
-    )
+    location = st.selectbox("■ Location", 
+                           ["All Locations", "Remote", "New York", "San Francisco", "London", "North Mankato, MN"])
+
 with col3:
-    job_type = st.selectbox(
-        "■ Type",
-        ["All Types", "Full-time", "Contract", "Part-time"]
-    )
+    job_type = st.selectbox("■ Type", 
+                           ["All Types", "Full-time", "Contract", "Part-time"])
+
 with col4:
     min_salary = st.slider("■ Min Salary (k)", 50, 250, 80)
 
@@ -173,8 +167,8 @@ df = st.session_state.jobs.copy()
 
 if search:
     df = df[
-        df['title'].str.contains(search, case=False) |
-        df['skills'].str.contains(search, case=False) |
+        df['title'].str.contains(search, case=False) | 
+        df['skills'].str.contains(search, case=False) | 
         df['company'].str.contains(search, case=False) |
         df['location'].str.contains(search, case=False)
     ]
@@ -215,7 +209,7 @@ else:
                     <span class="badge">Posted {job['posted']}</span>
                 </div>
                 <div style="color:#b0b8ff; font-size:0.95rem; margin:12px 0;">
-                    <strong>Skills / Details:</strong> {job['skills']}
+                    <strong>Skills:</strong> {job['skills']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
