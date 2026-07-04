@@ -1,3 +1,4 @@
+# ojp-1-4-4.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -6,7 +7,7 @@ import uuid
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="■",
+    page_icon="🚀",                    # Fixed: valid emoji
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -123,35 +124,38 @@ if "applications" not in st.session_state:
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
-    st.markdown("# ■ **AltIndeed**")
+    st.markdown("# 🚀 **AltIndeed**")
     st.caption("Modern jobs. Zero spam.")
     
     page = st.selectbox(
         "Navigate",
-        ["■ Home", "■ Discover Jobs", "■ Post a Job", "■ My Applications",
-         "■ Employer Hub", "■ AI Matcher"],
+        ["🏠 Home", "🔍 Discover Jobs", "📤 Post a Job", "📋 My Applications",
+         "🏢 Employer Hub", "🤖 AI Matcher"],
         label_visibility="collapsed"
     )
     
     st.divider()
-    if st.button("■■ Clear All Data (Dev)", use_container_width=True):
+    
+    if st.button("🗑️ Clear All Data (Dev)", use_container_width=True):
         st.session_state.jobs = st.session_state.jobs.iloc[:0]
         st.session_state.applications = []
         st.rerun()
     
     st.markdown("---")
-    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
+    # Fixed: valid icon
+    st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-if page == "■ Home":
+if page == "🏠 Home":
     col1, col2, col3 = st.columns([3, 1, 1])
     with col1:
         st.markdown("### Welcome to the future of job hunting")
         st.write("No endless scrolling. No ghosting. Just great matches.")
     
+    # Fixed metrics layout
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric("Active Jobs", len(st.session_state.jobs), "↑3 today")
@@ -164,16 +168,16 @@ if page == "■ Home":
     
     st.image("https://picsum.photos/id/1015/1200/400", use_column_width=True)
 
-elif page == "■ Discover Jobs":
-    st.markdown("### ■ Discover Jobs")
-    st.info("■ The Discover Jobs experience is being rebuilt. Check back soon!")
+elif page == "🔍 Discover Jobs":
+    st.markdown("### 🔍 Discover Jobs")
+    st.info("The Discover Jobs experience is being rebuilt. Check back soon!", icon="🔨")
     st.markdown("**In the meantime, explore other sections:**")
     st.markdown("- Use **Post a Job** to list new roles")
     st.markdown("- View your applications in **My Applications**")
     st.markdown("- Try the **AI Matcher** for smart recommendations")
 
-elif page == "■ Post a Job":
-    st.markdown("### ■ Post a New Role")
+elif page == "📤 Post a Job":
+    st.markdown("### 📤 Post a New Role")
     with st.form("post_job_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
@@ -202,18 +206,18 @@ elif page == "■ Post a Job":
                 "match": 0
             }
             st.session_state.jobs = pd.concat([st.session_state.jobs, pd.DataFrame([new_job])], ignore_index=True)
-            st.success("Job posted successfully! It’s now live.")
+            st.success("✅ Job posted successfully! It’s now live.")
 
-elif page == "■ My Applications":
-    st.markdown("### ■ Your Applications")
+elif page == "📋 My Applications":
+    st.markdown("### 📋 Your Applications")
     if st.session_state.applications:
         for app in reversed(st.session_state.applications):
-            st.success(f"**{app['job']}** \n{app['company']} • Applied {app['date'].strftime('%b %d, %Y')}")
+            st.success(f"**{app['job']}**  \n{app['company']} • Applied {app['date'].strftime('%b %d, %Y')}")
     else:
-        st.info("You haven't applied to any roles yet. Start exploring!")
+        st.info("You haven't applied to any roles yet. Start exploring!", icon="📭")
 
-elif page == "■ Employer Hub":
-    st.markdown("### ■ Employer Dashboard")
+elif page == "🏢 Employer Hub":
+    st.markdown("### 🏢 Employer Dashboard")
     st.dataframe(
         st.session_state.jobs[['title', 'company', 'location', 'salary', 'type']],
         use_container_width=True,
@@ -225,22 +229,19 @@ elif page == "■ Employer Hub":
     with col2:
         st.metric("Total Applications Received", len(st.session_state.applications))
 
-elif page == "■ AI Matcher":
-    st.markdown("### ■ AI Smart Matcher")
+elif page == "🤖 AI Matcher":
+    st.markdown("### 🤖 AI Smart Matcher")
     st.write("Paste your experience and let AI find your best fits.")
-    
     resume = st.text_area(
         "Your resume / skills summary",
         height=220,
         placeholder="5+ years Python • Built scalable Django apps • AWS certified..."
     )
-    
     if st.button("Find My Best Matches", type="primary", use_container_width=True):
         if resume.strip():
             with st.spinner("Analyzing your profile..."):
                 st.success("AI Match Complete")
                 matches = st.session_state.jobs.sort_values(by='match', ascending=False).head(3)
-                
                 for _, job in matches.iterrows():
                     st.markdown(f"""
                     <div class="job-card">
@@ -264,7 +265,7 @@ elif page == "■ AI Matcher":
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:#6677aa; font-size:0.9rem;'>"
-    "AltIndeed • A modern job platform prototype • Made with Streamlit + ❤■"
+    "AltIndeed • A modern job platform prototype • Made with Streamlit + ❤️"
     "</p>",
     unsafe_allow_html=True
 )
