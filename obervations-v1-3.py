@@ -20,3 +20,4 @@ Skills based searches
 Location based searches
 Requirements based searches
 
+The user has of indeed currently has to input a tremendous amount of information redundantly for each job application, and indeed doesn't peanlize jobs for not enganging or not interacting with good faith applicants or applicant participants.
