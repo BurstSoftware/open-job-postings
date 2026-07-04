@@ -21,3 +21,5 @@ Location based searches
 Requirements based searches
 
 The user has of indeed currently has to input a tremendous amount of information redundantly for each job application, and indeed doesn't peanlize jobs for not enganging or not interacting with good faith applicants or applicant participants.
+
+The total number of steps in searching, finding a job and securing a job role at a company is really high compared to applying for the job and talking with the company about the opportunites availble and scheduling an interview.
