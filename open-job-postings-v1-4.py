@@ -7,7 +7,7 @@ import re
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="🚀",          # Fixed: valid emoji
+    page_icon="■",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -110,6 +110,18 @@ if "jobs" not in st.session_state:
             "posted": "2026-07-03",
             "type": "Full-time",
             "match": 91
+        },
+        # === NEW JOB ADDED ===
+        {
+            "id": str(uuid.uuid4()),
+            "title": "WMN7 Flex - Amazon Associate",
+            "company": "Amazon",
+            "location": "North Mankato, MN 56003",
+            "salary": "$19/hr",
+            "skills": "Warehouse, Flexible Schedule, Picking/Packing, >19 hrs/week",
+            "posted": "2026-07-04",
+            "type": "Part-time",
+            "match": 82
         }
     ])
 
@@ -126,27 +138,34 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    st.info("Prototype • Built with ❤️ for better hiring", icon="🚀")  # Fixed
+    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# ====================== DISCOVER JOBS (ONLY PAGE) ======================
+# ====================== DISCOVER JOBS =======================
 st.markdown("### ■ Discover Your Next Role")
 
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+
 with col1:
-    search = st.text_input("🔍 Search titles, skills, companies...", 
-                          placeholder="Senior Engineer, React, Remote")
+    search = st.text_input(
+        "■ Search titles, skills, companies...",
+        placeholder="Senior Engineer, React, Remote, Amazon"
+    )
 with col2:
-    location = st.selectbox("📍 Location", 
-                           ["All Locations", "Remote", "New York", "San Francisco", "London"])
+    location = st.selectbox(
+        "■ Location",
+        ["All Locations", "Remote", "New York", "San Francisco", "London", "North Mankato"]
+    )
 with col3:
-    job_type = st.selectbox("💼 Type", 
-                           ["All Types", "Full-time", "Contract", "Part-time"])
+    job_type = st.selectbox(
+        "■ Type",
+        ["All Types", "Full-time", "Contract", "Part-time"]
+    )
 with col4:
-    min_salary = st.slider("💰 Min Salary (k)", 50, 250, 80)
+    min_salary = st.slider("■ Min Salary (k)", 50, 250, 80)
 
 # Filter logic
 df = st.session_state.jobs.copy()
@@ -155,7 +174,8 @@ if search:
     df = df[
         df['title'].str.contains(search, case=False) |
         df['skills'].str.contains(search, case=False) |
-        df['company'].str.contains(search, case=False)
+        df['company'].str.contains(search, case=False) |
+        df['location'].str.contains(search, case=False)
     ]
 
 if location != "All Locations":
@@ -165,7 +185,7 @@ if job_type != "All Types":
     df = df[df['type'] == job_type]
 
 def extract_min_salary(s):
-    nums = re.findall(r'\d+', s.replace('k', ''))
+    nums = re.findall(r'\d+', s.replace('k', '').replace('$', ''))
     return int(nums[0]) if nums else 0
 
 df = df[df['salary'].apply(extract_min_salary) >= min_salary]
@@ -194,7 +214,7 @@ else:
                     <span class="badge">Posted {job['posted']}</span>
                 </div>
                 <div style="color:#b0b8ff; font-size:0.95rem; margin:12px 0;">
-                    <strong>Skills:</strong> {job['skills']}
+                    <strong>Skills / Details:</strong> {job['skills']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
