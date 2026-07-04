@@ -80,7 +80,7 @@ if "jobs" not in st.session_state:
     st.session_state.jobs = pd.DataFrame([
         {
             "id": str(uuid.uuid4()),
-            "title": "Senior Python Engineer",
+            "title": "Demo Job Placeholder.Senior Python Engineer",
             "company": "TechCorp",
             "location": "Remote",
             "salary": "120k–160k",
@@ -91,7 +91,7 @@ if "jobs" not in st.session_state:
         },
         {
             "id": str(uuid.uuid4()),
-            "title": "Growth Marketing Manager",
+            "title": "Demo Job Placeholder.Growth Marketing Manager",
             "company": "GrowthCo",
             "location": "New York, NY",
             "salary": "85k–115k",
@@ -102,7 +102,7 @@ if "jobs" not in st.session_state:
         },
         {
             "id": str(uuid.uuid4()),
-            "title": "Product Designer",
+            "title": "Demo Job Placeholder.Product Designer",
             "company": "Nexus Studio",
             "location": "San Francisco",
             "salary": "130k–170k",
