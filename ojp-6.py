@@ -93,18 +93,19 @@ for _, row in df_raw.iterrows():
     
     jobs_list.append({
         "id": str(uuid.uuid4()),
-        "title": "Amazon Flex - X",                    # ← Updated
+        "title": "Amazon Flex - X",
         "company": "Amazon",
         "location": "North Mankato, MN 56003",
         "salary": "$19/hr",
         "posted": row['Timestamp'].split()[0],
-        "type": "Part Time >19 hours a week",          # ← Updated
+        "type": "Part Time >19 hours a week",
         "match": 92,
-        "website": row.get('Website', ''),
+        "website": "http://amazon.com/getpaid",   # ← Updated
         "phone": row.get('Phone', ''),
         "description": "warehouse work",
         "requirements": "warehouse work",
-        "benefits": "benefits available through the A to Z app"
+        "benefits": "benefits available through the A to Z app",
+        "referrer": "narossoh"                    # ← Added
     })
 
 if "jobs" not in st.session_state:
@@ -115,7 +116,7 @@ if "applications" not in st.session_state:
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
-    st.markdown("# ■ **Open Job Postings**")   # ← Updated
+    st.markdown("# ■ **Open Job Postings**")
     st.caption("Modern jobs. Zero spam.")
     st.divider()
     if st.button("Clear All Data (Dev)", use_container_width=True):
@@ -126,7 +127,7 @@ with st.sidebar:
     st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
 
 # ====================== MAIN APP ======================
-st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)  # ← Updated
+st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
 # Filters
@@ -136,7 +137,7 @@ col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 with col1:
     search = st.text_input("■ Search titles, skills, companies...", placeholder="Amazon Flex, warehouse")
 with col2:
-    location_filter = st.selectbox("■ Location", ["All Locations"] + ["North Mankato"])
+    location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
 with col3:
     job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
 with col4:
@@ -197,22 +198,27 @@ else:
             <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;">{job['benefits']}</div>
 
             <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                <div><strong>Website:</strong> <a href="https://{job['website']}" target="_blank" style="color:#6e8cff;">{job['website']}</a></div>
+                <div><strong>Website:</strong> <a href="{job['website']}" target="_blank" style="color:#6e8cff;">amazon.com/getpaid</a></div>
                 <div><strong>Phone:</strong> {job['phone']}</div>
+            </div>
+
+            <div style="margin-top:16px; padding-top:12px; border-top:1px solid #334477; font-size:0.9rem; color:#8899cc;">
+                <strong>Amazon Associate ID:</strong> {job['referrer']}
             </div>
         </div>
         """)
 
-        # Apply button
+        # Apply Now Button - Opens the referral link
         col_a, col_b = st.columns([1, 4])
         with col_a:
             if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
+                st.success("🔗 Redirecting to application page...")
+                st.markdown(f'<meta http-equiv="refresh" content="0; url={job["website"]}">', unsafe_allow_html=True)
                 st.session_state.applications.append({
                     "job": job['title'],
                     "company": job['company'],
                     "date": datetime.now()
                 })
-                st.success(f"✅ Application sent to **{job['company']}**!")
                 st.balloons()
 
 # ====================== FOOTER ======================
