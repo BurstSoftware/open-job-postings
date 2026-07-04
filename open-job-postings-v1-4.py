@@ -90,26 +90,26 @@ if "jobs" not in st.session_state:
             "match": 94
         },
         {
-            "id": str(uuid.uuid4()),
-            "title": "Growth Marketing Manager",
-            "company": "GrowthCo",
-            "location": "New York, NY",
-            "salary": "85k–115k",
-            "skills": "SEO, Content Strategy, Analytics",
-            "posted": "2026-07-02",
-            "type": "Full-time",
-            "match": 87
+#            "id": str(uuid.uuid4()),
+#            "title": "Growth Marketing Manager",
+#            "company": "GrowthCo",
+#            "location": "New York, NY",
+#            "salary": "85k–115k",
+#            "skills": "SEO, Content Strategy, Analytics",
+#            "posted": "2026-07-02",
+#            "type": "Full-time",
+#            "match": 87
         },
         {
-            "id": str(uuid.uuid4()),
-            "title": "Product Designer",
-            "company": "Nexus Studio",
-            "location": "San Francisco",
-            "salary": "130k–170k",
-            "skills": "Figma, User Research, Prototyping",
-            "posted": "2026-07-03",
-            "type": "Full-time",
-            "match": 91
+#            "id": str(uuid.uuid4()),
+#            "title": "Product Designer",
+#            "company": "Nexus Studio",
+#            "location": "San Francisco",
+#            "salary": "130k–170k",
+#            "skills": "Figma, User Research, Prototyping",
+#            "posted": "2026-07-03",
+#            "type": "Full-time",
+#            "match": 91
         }
     ])
 
