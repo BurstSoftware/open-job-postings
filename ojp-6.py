@@ -86,7 +86,6 @@ csv_data = """Timestamp,Business Name,Job Title,City,State,Zip Code,Job Type,Hou
 
 df_raw = pd.read_csv(io.StringIO(csv_data))
 
-# Convert to job format
 jobs_list = []
 for _, row in df_raw.iterrows():
     location = f"{row['City']}, {row['State']} {row['Zip Code']}"
@@ -98,15 +97,14 @@ for _, row in df_raw.iterrows():
         "company": row['Business Name'],
         "location": location,
         "salary": salary,
-        "skills": row['Job Description'],
         "posted": row['Timestamp'].split()[0],
         "type": row['Job Type'],
         "match": 92,
         "website": row.get('Website', ''),
         "phone": row.get('Phone', ''),
-        "description": row.get('Job Description', ''),
-        "requirements": row.get('Requirements', ''),
-        "benefits": row.get('Benefits', '')
+        "description": row.get('Job Description', 'No description provided'),
+        "requirements": row.get('Requirements', 'No requirements listed'),
+        "benefits": row.get('Benefits', 'No benefits listed')
     })
 
 if "jobs" not in st.session_state:
@@ -131,7 +129,7 @@ with st.sidebar:
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# Filters (unchanged)
+# Filters
 st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
@@ -144,12 +142,14 @@ with col3:
 with col4:
     min_salary = st.slider("■ Min Hourly ($)", 0, 200, 50)
 
-# Filtering logic
+# Filtering
 df = st.session_state.jobs.copy()
 if search:
-    df = df[df['title'].str.contains(search, case=False) | 
-            df['company'].str.contains(search, case=False) |
-            df['description'].str.contains(search, case=False)]
+    df = df[
+        df['title'].str.contains(search, case=False) | 
+        df['company'].str.contains(search, case=False) |
+        df['description'].str.contains(search, case=False)
+    ]
 if location_filter != "All Locations":
     df = df[df['location'].str.contains(location_filter, case=False)]
 if job_type != "All Types":
@@ -163,12 +163,13 @@ df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"Showing **{len(df)}** high-quality opportunities")
 
-# ====================== JOB CARDS ======================
+# ====================== JOB CARDS (FIXED) ======================
 if df.empty:
     st.warning("No jobs match your filters.")
 else:
     for _, job in df.iterrows():
-        st.markdown(f"""
+        # Use st.html() - more reliable for complex HTML
+        st.html(f"""
         <div class="job-card">
             <div style="display:flex; justify-content:space-between; align-items:start;">
                 <div>
@@ -201,7 +202,7 @@ else:
                 <div><strong>Phone:</strong> {job['phone']}</div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         # Apply button
         col_a, col_b = st.columns([1, 4])
