@@ -208,35 +208,17 @@ else:
         </div>
         """)
 
-        # Apply Now Button - Now directly opens the link
+        # Apply Now Button
         col_a, col_b = st.columns([1, 4])
         with col_a:
-            # Create a styled button that opens the link
-            st.markdown(f"""
-            <a href="{job['website']}" target="_blank">
-                <button style="
-                    background: linear-gradient(90deg, #00ff9d, #00cc7a);
-                    color: black;
-                    border: none;
-                    padding: 12px 28px;
-                    font-size: 1.05rem;
-                    font-weight: 700;
-                    border-radius: 50px;
-                    cursor: pointer;
-                    width: 100%;
-                    transition: all 0.2s;
-                ">🚀 Apply Now</button>
-            </a>
-            """, unsafe_allow_html=True)
-
-            # Optional: Keep track of applications when clicked
-            if st.button("Record Application", key=f"apply_{job['id']}", use_container_width=True):
+            if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
+                st.success("🔗 Redirecting to application page...")
+                st.markdown(f'<meta http-equiv="refresh" content="0; url={job["website"]}">', unsafe_allow_html=True)
                 st.session_state.applications.append({
                     "job": job['title'],
                     "company": job['company'],
                     "date": datetime.now()
                 })
-                st.success("✅ Application recorded!")
                 st.balloons()
 
 # ====================== FOOTER ======================
