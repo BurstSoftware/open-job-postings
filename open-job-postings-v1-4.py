@@ -7,7 +7,7 @@ import re
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="🚀",          # Fixed: valid emoji
+    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -19,9 +19,8 @@ st.markdown("""
     background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
     color: #e0e0ff;
 }
-.stApp {
-    background: #0f0f23;
-}
+.stApp { background: #0f0f23; }
+
 .job-card {
     background: linear-gradient(145deg, #16213e, #1e2a5c);
     border-radius: 20px;
@@ -84,10 +83,21 @@ if "jobs" not in st.session_state:
             "company": "Amazon",
             "location": "North Mankato, MN WMN7",
             "salary": "19/hr",
-            "skills": "Warehouse",
+            "skills": "Warehouse, Picking, Packing",
             "posted": "2026-07-03",
-            "type": "Part Time >19/hr a week",
-            "match": 0
+            "type": "Part-time",
+            "match": 92
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Senior Python Developer",
+            "company": "TechFlow Inc.",
+            "location": "Remote",
+            "salary": "135k",
+            "skills": "Python, Django, AWS, PostgreSQL",
+            "posted": "2026-07-02",
+            "type": "Full-time",
+            "match": 87
         }
     ])
 
@@ -104,13 +114,13 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    st.info("Prototype • Built with ❤️ for better hiring", icon="🚀")  # Fixed
+    st.info("Prototype • Built with ❤️ for better hiring", icon="🚀")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# ====================== DISCOVER JOBS (ONLY PAGE) ======================
+# ====================== FILTERS ======================
 st.markdown("### ■ Discover Your Next Role")
 
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
@@ -119,14 +129,14 @@ with col1:
                           placeholder="Senior Engineer, React, Remote")
 with col2:
     location = st.selectbox("📍 Location", 
-                           ["All Locations", "Remote", "New York", "San Francisco", "London"])
+                           ["All Locations", "Remote", "New York", "San Francisco", "London", "Minnesota"])
 with col3:
     job_type = st.selectbox("💼 Type", 
                            ["All Types", "Full-time", "Contract", "Part-time"])
 with col4:
-    min_salary = st.slider("💰 Min Salary (k)", 50, 250, 80)
+    min_salary = st.slider("💰 Min Salary", 0, 300, 50, help="in $k or $/hr")
 
-# Filter logic
+# ====================== FILTER LOGIC ======================
 df = st.session_state.jobs.copy()
 
 if search:
@@ -140,16 +150,18 @@ if location != "All Locations":
     df = df[df['location'].str.contains(location, case=False)]
 
 if job_type != "All Types":
-    df = df[df['type'] == job_type]
+    df = df[df['type'].str.contains(job_type, case=False)]
 
+# Improved salary filter
 def extract_min_salary(s):
-    nums = re.findall(r'\d+', s.replace('k', ''))
+    nums = re.findall(r'\d+', str(s).replace('k', '').replace('/hr', ''))
     return int(nums[0]) if nums else 0
 
 df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"Showing **{len(df)}** high-quality opportunities")
 
+# ====================== JOB CARDS ======================
 if df.empty:
     st.warning("No jobs match your filters. Try broadening your search!")
 else:
@@ -167,10 +179,13 @@ else:
                         <div style="font-size:0.85rem; color:#8899cc;">{job['location']}</div>
                     </div>
                 </div>
+                
                 <div style="margin:16px 0;">
                     <span class="badge">{job['type']}</span>
                     <span class="badge">Posted {job['posted']}</span>
+                    {f'<span class="badge" style="background:#2e8b57; color:white;">{job["match"]}% Match</span>' if job.get("match", 0) > 0 else ''}
                 </div>
+                
                 <div style="color:#b0b8ff; font-size:0.95rem; margin:12px 0;">
                     <strong>Skills:</strong> {job['skills']}
                 </div>
@@ -183,7 +198,7 @@ else:
                     st.session_state.applications.append({
                         "job": job['title'],
                         "company": job['company'],
-                        "date": datetime.now()
+                        "date": datetime.now().strftime("%Y-%m-%d %H:%M")
                     })
                     st.success(f"Application sent to **{job['company']}** for **{job['title']}**!")
                     st.balloons()
