@@ -66,11 +66,11 @@ if "jobs" not in st.session_state:
         {"id": str(uuid.uuid4()), "title": "Growth Marketing Manager", "company": "GrowthCo", "location": "New York, NY",
          "salary": "85k–115k", "skills": "SEO, Content Strategy, Analytics", "posted": "2026-07-02",
          "type": "Full-time", "match": 87, "category": "Business"},
-        {"id": str(uuid.uuid4()), "title": "Product Designer", "company": "Nexus Studio", "location": "San Francisco",
+        {"id": str(uuid.uuid4()), "title": "Product Designer", "company": "Nexus Studio", "location": "San Francisco, CA",
          "salary": "130k–170k", "skills": "Figma, User Research, Prototyping", "posted": "2026-07-03",
          "type": "Full-time", "match": 91, "category": "Creative"},
         {"id": str(uuid.uuid4()), "title": "Amazon Associate - WMN7 Flex", "company": "Amazon",
-         "location": "North Mankato, MN 56003", "salary": "$19/hr",
+         "location": "North Mankato, MN", "salary": "$19/hr",
          "skills": "Warehouse, Picking, Packing, Flexible Schedule", "posted": "2026-07-04",
          "type": "Part-time", "match": 82, "category": "Trade"},
         {"id": str(uuid.uuid4()), "title": "Journeyman Electrician", "company": "PowerGrid Solutions",
@@ -101,11 +101,23 @@ st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4, col5 = st.columns([3, 1.8, 1.8, 1.8, 1.8])
 
-with col1: search = st.text_input("■ Search...", placeholder="Senior Engineer, Python, Remote")
-with col2: category = st.selectbox("■ Category", options=list(CATEGORIES.keys()))
-with col3: location = st.selectbox("■ Location", ["All Locations", "Remote", "New York", "San Francisco", "Chicago", "North Mankato, MN"])
-with col4: job_type = st.selectbox("■ Type", ["All Types", "Full-time", "Part-time", "Contract"])
-with col5: min_salary = st.slider("■ Min Salary (k)", 0, 250, 50)
+with col1: 
+    search = st.text_input("■ Search...", placeholder="Senior Engineer, Python, Remote")
+with col2: 
+    category = st.selectbox("■ Category", options=list(CATEGORIES.keys()))
+with col3: 
+    # Updated to focus on United States
+    location = st.selectbox(
+        "■ Location", 
+        ["All United States", "Remote", 
+         "New York, NY", "San Francisco, CA", "Chicago, IL", 
+         "Los Angeles, CA", "Austin, TX", "Seattle, WA", 
+         "Boston, MA", "Denver, CO", "Atlanta, GA"]
+    )
+with col4: 
+    job_type = st.selectbox("■ Type", ["All Types", "Full-time", "Part-time", "Contract"])
+with col5: 
+    min_salary = st.slider("■ Min Salary (k)", 0, 250, 50)
 
 # ====================== FILTER LOGIC ======================
 df = st.session_state.jobs.copy()
@@ -121,7 +133,8 @@ if search:
 if category != "All Categories":
     df = df[df['category'] == category]
 
-if location != "All Locations":
+# Updated location filtering
+if location != "All United States":
     df = df[df['location'].str.contains(location, case=False)]
 
 if job_type != "All Types":
@@ -133,21 +146,19 @@ def extract_min_salary(s):
 
 df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
-st.caption(f"**{len(df)}** opportunities found")
+st.caption(f"**{len(df)}** opportunities found across the United States")
 
-# ====================== DISPLAY JOBS (SIMPLIFIED + CARDS) ======================
+# ====================== DISPLAY JOBS ======================
 if df.empty:
-    st.error("No jobs match your filters. Try selecting **All Categories** and clearing the search.")
+    st.error("No jobs match your filters. Try selecting **All United States** and clearing the search.")
     st.dataframe(st.session_state.jobs, use_container_width=True)
 else:
-    # Table view for easy verification
     st.subheader("Job Listings")
     preview = df[['title', 'company', 'category', 'location', 'salary', 'match']].copy()
     st.dataframe(preview, use_container_width=True, hide_index=True)
 
     st.divider()
 
-    # Beautiful cards
     for _, job in df.iterrows():
         color = CATEGORY_COLORS.get(job['category'], "#6b7280")
         
@@ -189,7 +200,7 @@ else:
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:#6677aa; font-size:0.9rem;'>"
-    "AltIndeed • Modern Job Platform Prototype"
+    "AltIndeed • Modern Job Platform Prototype • United States Focus"
     "</p>",
     unsafe_allow_html=True
 )
