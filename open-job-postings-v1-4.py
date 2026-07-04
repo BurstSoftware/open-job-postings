@@ -55,6 +55,15 @@ st.markdown("""
     font-size: 0.8rem;
     margin-right: 8px;
 }
+.match-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #00ff9d, #00cc7a);
+    color: #000;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
 .stButton>button {
     border-radius: 50px;
     height: 48px;
@@ -104,7 +113,6 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    # FIXED: Use valid emoji
     st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
 
 # ====================== MAIN APP ======================
@@ -147,9 +155,16 @@ if location != "All Locations":
 if job_type != "All Types":
     df = df[df['type'] == job_type]
 
+# Improved salary filter - handles hourly and annual
 def extract_min_salary(s):
-    nums = re.findall(r'\d+', s.replace('k', '').replace('$', ''))
-    return int(nums[0]) if nums else 0
+    # Remove $ and /hr
+    clean = s.replace('$', '').replace('/hr', '').replace('k', '').strip()
+    nums = re.findall(r'\d+', clean)
+    val = int(nums[0]) if nums else 0
+    # If it's hourly, convert roughly to annual (40hrs * 52 weeks)
+    if '/hr' in s.lower():
+        val = val * 40 * 52 // 1000  # convert to k
+    return val
 
 df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
@@ -172,10 +187,13 @@ else:
                         <div style="font-size:0.85rem; color:#8899cc;">{job['location']}</div>
                     </div>
                 </div>
+                
                 <div style="margin:16px 0;">
                     <span class="badge">{job['type']}</span>
                     <span class="badge">Posted {job['posted']}</span>
+                    <span class="match-badge">Match: {job['match']}%</span>
                 </div>
+                
                 <div style="color:#b0b8ff; font-size:0.95rem; margin:12px 0;">
                     <strong>Skills:</strong> {job['skills']}
                 </div>
