@@ -111,7 +111,7 @@ if "jobs" not in st.session_state:
             "type": "Full-time",
             "match": 91
         },
-        # === NEW JOB ADDED ===
+        # === NEW AMAZON JOB ===
         {
             "id": str(uuid.uuid4()),
             "title": "WMN7 Flex - Amazon Associate",
@@ -138,7 +138,8 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
+    # FIXED: Valid emoji icon
+    st.info("Prototype • Built with ❤ for better hiring", icon="🚀")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
