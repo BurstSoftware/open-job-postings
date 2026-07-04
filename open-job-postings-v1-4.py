@@ -1,14 +1,12 @@
-# ojp-1-3.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 import uuid
-import re
 
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="■",  # Valid emoji
+    page_icon="■",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -136,7 +134,6 @@ with st.sidebar:
     )
     
     st.divider()
-    
     if st.button("■■ Clear All Data (Dev)", use_container_width=True):
         st.session_state.jobs = st.session_state.jobs.iloc[:0]
         st.session_state.applications = []
@@ -168,11 +165,8 @@ if page == "■ Home":
     st.image("https://picsum.photos/id/1015/1200/400", use_column_width=True)
 
 elif page == "■ Discover Jobs":
-    # Discover Jobs UI has been removed per requirements.
-    # Menu entry is preserved for future iterations.
     st.markdown("### ■ Discover Jobs")
-    st.info("🔧 The Discover Jobs experience is being rebuilt. Check back soon!")
-    
+    st.info("■ The Discover Jobs experience is being rebuilt. Check back soon!")
     st.markdown("**In the meantime, explore other sections:**")
     st.markdown("- Use **Post a Job** to list new roles")
     st.markdown("- View your applications in **My Applications**")
@@ -234,17 +228,20 @@ elif page == "■ Employer Hub":
 elif page == "■ AI Matcher":
     st.markdown("### ■ AI Smart Matcher")
     st.write("Paste your experience and let AI find your best fits.")
-    resume = st.text_area("Your resume / skills summary", 
-                         height=220,
-                         placeholder="5+ years Python • Built scalable Django apps • AWS certified...")
+    
+    resume = st.text_area(
+        "Your resume / skills summary",
+        height=220,
+        placeholder="5+ years Python • Built scalable Django apps • AWS certified..."
+    )
     
     if st.button("Find My Best Matches", type="primary", use_container_width=True):
-        if resume:
+        if resume.strip():
             with st.spinner("Analyzing your profile..."):
                 st.success("AI Match Complete")
                 matches = st.session_state.jobs.sort_values(by='match', ascending=False).head(3)
+                
                 for _, job in matches.iterrows():
-                    match_score = job['match']
                     st.markdown(f"""
                     <div class="job-card">
                         <div style="display:flex; justify-content:space-between;">
@@ -253,10 +250,10 @@ elif page == "■ AI Matcher":
                                 <div class="company">{job['company']} • {job['location']}</div>
                             </div>
                             <div style="text-align:right; font-size:2rem; font-weight:800; color:#00ff9d;">
-                                {match_score}%
+                                {job['match']}%
                             </div>
                         </div>
-                        <div class="match-bar" style="width:{match_score}%"></div>
+                        <div class="match-bar" style="width:{job['match']}%"></div>
                         <small>{job['skills']}</small>
                     </div>
                     """, unsafe_allow_html=True)
