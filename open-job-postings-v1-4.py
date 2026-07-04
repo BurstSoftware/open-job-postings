@@ -3,10 +3,11 @@ import pandas as pd
 from datetime import datetime
 import uuid
 import re
+
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="■",  # Fixed: valid emoji
+    page_icon="■",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -110,7 +111,7 @@ if "jobs" not in st.session_state:
             "type": "Full-time",
             "match": 91
         },
-        # === NEW JOB ADDED ===
+        # === NEW AMAZON JOB ===
         {
             "id": str(uuid.uuid4()),
             "title": "Amazon Associate - WMN7 Flex",
@@ -137,7 +138,8 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
+    # FIXED: Use valid emoji
+    st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
