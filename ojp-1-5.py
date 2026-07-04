@@ -5,14 +5,24 @@ import uuid
 import re
 
 # ====================== CONFIG ======================
-st.set_page_config(page_title="AltIndeed", page_icon="■", layout="wide")
+st.set_page_config(
+    page_title="AltIndeed",
+    page_icon="■",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ====================== CATEGORIES ======================
 CATEGORIES = {
-    "All Categories": "All", "Tech": "💻 Tech", "Business": "📊 Business",
-    "Trade": "🔧 Trade & Skilled", "Creative": "🎨 Creative",
-    "Healthcare": "🩺 Healthcare", "Sales": "💼 Sales",
-    "Education": "📚 Education", "Other": "🔀 Other"
+    "All Categories": "All",
+    "Tech": "💻 Tech",
+    "Business": "📊 Business",
+    "Trade": "🔧 Trade & Skilled",
+    "Creative": "🎨 Creative",
+    "Healthcare": "🩺 Healthcare",
+    "Sales": "💼 Sales",
+    "Education": "📚 Education",
+    "Other": "🔀 Other"
 }
 
 CATEGORY_COLORS = {
@@ -24,27 +34,25 @@ CATEGORY_COLORS = {
 # ====================== CUSTOM CSS ======================
 st.markdown("""
 <style>
+.main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
+.stApp { background: #0f0f23; }
 .job-card {
     background: linear-gradient(145deg, #16213e, #1e2a5c);
     border-radius: 20px;
     padding: 24px;
     margin: 16px 0;
     border: 1px solid #4a5d9e;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 .job-card:hover { transform: translateY(-8px); border-color: #6e8cff; }
 .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; }
 .company { color: #8f9eff; font-weight: 600; }
 .badge {
-    display: inline-block; padding: 4px 12px; border-radius: 30px;
-    font-size: 0.85rem; margin-right: 8px;
-}
-.header-title {
-    font-size: 2.8rem;
-    background: linear-gradient(90deg, #a0c4ff, #c0d0ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    margin-right: 8px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -63,39 +71,52 @@ if "jobs" not in st.session_state:
          "type": "Full-time", "match": 91, "category": "Creative"},
         {"id": str(uuid.uuid4()), "title": "Amazon Associate - WMN7 Flex", "company": "Amazon",
          "location": "North Mankato, MN 56003", "salary": "$19/hr",
-         "skills": "Warehouse, Picking, Packing", "posted": "2026-07-04",
+         "skills": "Warehouse, Picking, Packing, Flexible Schedule", "posted": "2026-07-04",
          "type": "Part-time", "match": 82, "category": "Trade"},
         {"id": str(uuid.uuid4()), "title": "Journeyman Electrician", "company": "PowerGrid Solutions",
          "location": "Chicago, IL", "salary": "75k–95k",
-         "skills": "Electrical Systems, Blueprint Reading", "posted": "2026-07-03",
+         "skills": "Electrical Systems, Blueprint Reading, Safety Protocols", "posted": "2026-07-03",
          "type": "Full-time", "match": 89, "category": "Trade"},
     ])
 
-# ====================== MAIN UI ======================
+if "applications" not in st.session_state:
+    st.session_state.applications = []
+
+# ====================== SIDEBAR ======================
+with st.sidebar:
+    st.markdown("# ■ **AltIndeed**")
+    st.caption("Modern jobs. Zero spam.")
+    st.divider()
+    if st.button("Clear All Data (Dev)", use_container_width=True):
+        st.session_state.jobs = st.session_state.jobs.iloc[:0]
+        st.session_state.applications = []
+        st.rerun()
+    st.info("Prototype • Built with ❤️", icon="ℹ️")
+
+# ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
+# ====================== FILTERS ======================
 st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4, col5 = st.columns([3, 1.8, 1.8, 1.8, 1.8])
 
-with col1:
-    search = st.text_input("Search titles, skills, companies...", placeholder="Python, Remote, Marketing")
-with col2:
-    category = st.selectbox("Category", options=list(CATEGORIES.keys()))
-with col3:
-    location = st.selectbox("Location", ["All Locations", "Remote", "New York", "San Francisco", "Chicago", "North Mankato, MN"])
-with col4:
-    job_type = st.selectbox("Type", ["All Types", "Full-time", "Part-time", "Contract"])
-with col5:
-    min_salary = st.slider("Min Salary (k)", 0, 250, 50)
+with col1: search = st.text_input("■ Search...", placeholder="Senior Engineer, Python, Remote")
+with col2: category = st.selectbox("■ Category", options=list(CATEGORIES.keys()))
+with col3: location = st.selectbox("■ Location", ["All Locations", "Remote", "New York", "San Francisco", "Chicago", "North Mankato, MN"])
+with col4: job_type = st.selectbox("■ Type", ["All Types", "Full-time", "Part-time", "Contract"])
+with col5: min_salary = st.slider("■ Min Salary (k)", 0, 250, 50)
 
-# ====================== FILTERING ======================
+# ====================== FILTER LOGIC ======================
 df = st.session_state.jobs.copy()
 
 if search:
-    df = df[df['title'].str.contains(search, case=False) |
-            df['skills'].str.contains(search, case=False) |
-            df['company'].str.contains(search, case=False)]
+    df = df[
+        df['title'].str.contains(search, case=False) |
+        df['skills'].str.contains(search, case=False) |
+        df['company'].str.contains(search, case=False) |
+        df['location'].str.contains(search, case=False)
+    ]
 
 if category != "All Categories":
     df = df[df['category'] == category]
@@ -114,46 +135,61 @@ df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"**{len(df)}** opportunities found")
 
-# ====================== DISPLAY JOBS ======================
+# ====================== DISPLAY JOBS (SIMPLIFIED + CARDS) ======================
 if df.empty:
-    st.error("No jobs found. Try clearing some filters.")
-    st.dataframe(st.session_state.jobs, use_container_width=True)  # Debug fallback
+    st.error("No jobs match your filters. Try selecting **All Categories** and clearing the search.")
+    st.dataframe(st.session_state.jobs, use_container_width=True)
 else:
+    # Table view for easy verification
+    st.subheader("Job Listings")
+    preview = df[['title', 'company', 'category', 'location', 'salary', 'match']].copy()
+    st.dataframe(preview, use_container_width=True, hide_index=True)
+
+    st.divider()
+
+    # Beautiful cards
     for _, job in df.iterrows():
         color = CATEGORY_COLORS.get(job['category'], "#6b7280")
         
-        st.markdown(f"""
-        <div class="job-card">
-            <div style="display:flex; justify-content:space-between;">
-                <div>
-                    <div class="job-title">{job['title']}</div>
-                    <div class="company">■ {job['company']}</div>
+        with st.container():
+            st.markdown(f"""
+            <div class="job-card">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <div class="job-title">{job['title']}</div>
+                        <div class="company">■ {job['company']}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
+                        <div style="color:#8899cc;">{job['location']}</div>
+                    </div>
                 </div>
-                <div style="text-align:right;">
-                    <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
-                    <div style="color:#8899cc;">{job['location']}</div>
+                
+                <div style="margin:16px 0;">
+                    <span class="badge" style="background:{color};">{job['category']}</span>
+                    <span class="badge">{job['type']}</span>
+                    <span class="badge">Posted {job['posted']}</span>
+                    <span class="badge" style="background:#22c55e;color:black;">{job['match']}% Match</span>
                 </div>
+                
+                <div style="color:#b0b8ff;"><strong>Skills:</strong> {job['skills']}</div>
             </div>
-            
-            <div style="margin:12px 0;">
-                <span class="badge" style="background:{color};">{job['category']}</span>
-                <span class="badge">{job['type']}</span>
-                <span class="badge">Posted {job['posted']}</span>
-                <span class="badge" style="background:#22c55e; color:black;">{job['match']}% Match</span>
-            </div>
-            
-            <div><strong>Skills:</strong> {job['skills']}</div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-        if st.button("Apply Now", key=f"apply_{job['id']}"):
-            st.success(f"Application sent to **{job['company']}** for **{job['title']}**! 🎉")
-            st.balloons()
+            if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
+                st.session_state.applications.append({
+                    "job": job['title'],
+                    "company": job['company'],
+                    "date": datetime.now()
+                })
+                st.success(f"Application sent to **{job['company']}**!")
+                st.balloons()
 
-# ====================== DEBUG SECTION ======================
-with st.expander("🔍 Debug: Show All Raw Jobs Data"):
-    st.dataframe(st.session_state.jobs, use_container_width=True)
-
-# Footer
+# ====================== FOOTER ======================
 st.markdown("---")
-st.markdown("<p style='text-align:center; color:#6677aa;'>AltIndeed Prototype</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='text-align:center; color:#6677aa; font-size:0.9rem;'>"
+    "AltIndeed • Modern Job Platform Prototype"
+    "</p>",
+    unsafe_allow_html=True
+)
