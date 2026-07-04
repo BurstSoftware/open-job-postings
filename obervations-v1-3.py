@@ -12,3 +12,7 @@ don't let the present requirements define or dictate future circumstances.
 
 Allow the user of the app to use ai to search their location using their device to reduce the amount of front end inputs just to find their jobs relative to their geological positiong.
 Allow the user to set a preference using ai to search for jobs using a location preference, saved, previously saved or previously determined by the users previous saves, or searches using key words, trade skills or industry terminology.
+
+Location based search for opportunites.
+Saved location based searches for opportunites.
+
