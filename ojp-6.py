@@ -7,7 +7,7 @@ import io
 
 # ====================== CONFIG ======================
 st.set_page_config(
-    page_title="AltIndeed",
+    page_title="Open Job Postings",
     page_icon="■",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -93,18 +93,18 @@ for _, row in df_raw.iterrows():
     
     jobs_list.append({
         "id": str(uuid.uuid4()),
-        "title": row['Job Title'],
-        "company": row['Business Name'],
-        "location": location,
-        "salary": salary,
+        "title": "Amazon Flex - X",                    # ← Updated
+        "company": "Amazon",
+        "location": "North Mankato, MN 56003",
+        "salary": "$19/hr",
         "posted": row['Timestamp'].split()[0],
-        "type": row['Job Type'],
+        "type": "Part Time >19 hours a week",          # ← Updated
         "match": 92,
         "website": row.get('Website', ''),
         "phone": row.get('Phone', ''),
-        "description": row.get('Job Description', 'No description provided'),
-        "requirements": row.get('Requirements', 'No requirements listed'),
-        "benefits": row.get('Benefits', 'No benefits listed')
+        "description": "warehouse work",
+        "requirements": "warehouse work",
+        "benefits": "benefits available through the A to Z app"
     })
 
 if "jobs" not in st.session_state:
@@ -115,7 +115,7 @@ if "applications" not in st.session_state:
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
-    st.markdown("# ■ **AltIndeed**")
+    st.markdown("# ■ **Open Job Postings**")   # ← Updated
     st.caption("Modern jobs. Zero spam.")
     st.divider()
     if st.button("Clear All Data (Dev)", use_container_width=True):
@@ -126,7 +126,7 @@ with st.sidebar:
     st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
 
 # ====================== MAIN APP ======================
-st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)  # ← Updated
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
 # Filters
@@ -134,13 +134,13 @@ st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
 with col1:
-    search = st.text_input("■ Search titles, skills, companies...", placeholder="DemoJob, Python, ABC Test")
+    search = st.text_input("■ Search titles, skills, companies...", placeholder="Amazon Flex, warehouse")
 with col2:
-    location_filter = st.selectbox("■ Location", ["All Locations"] + list(df_raw['City'].unique()))
+    location_filter = st.selectbox("■ Location", ["All Locations"] + ["North Mankato"])
 with col3:
-    job_type = st.selectbox("■ Type", ["All Types"] + list(df_raw['Job Type'].unique()))
+    job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
 with col4:
-    min_salary = st.slider("■ Min Hourly ($)", 0, 200, 50)
+    min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
 
 # Filtering
 df = st.session_state.jobs.copy()
@@ -163,12 +163,11 @@ df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"Showing **{len(df)}** high-quality opportunities")
 
-# ====================== JOB CARDS (FIXED) ======================
+# ====================== JOB CARDS ======================
 if df.empty:
     st.warning("No jobs match your filters.")
 else:
     for _, job in df.iterrows():
-        # Use st.html() - more reliable for complex HTML
         st.html(f"""
         <div class="job-card">
             <div style="display:flex; justify-content:space-between; align-items:start;">
@@ -220,7 +219,7 @@ else:
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:#6677aa; font-size:0.9rem;'>"
-    "AltIndeed • Discover Jobs • Modern job platform prototype"
+    "Open Job Postings • Modern job platform prototype"
     "</p>",
     unsafe_allow_html=True
 )
