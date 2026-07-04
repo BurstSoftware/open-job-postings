@@ -86,7 +86,7 @@ if "jobs" not in st.session_state:
             "salary": "19/hr",
             "skills": "Warehouse",
             "posted": "2026-07-03",
-            "type": "Parttime >19/hr a week",
+            "type": "Part Time >19/hr a week",
             "match": 0
         }
     ])
