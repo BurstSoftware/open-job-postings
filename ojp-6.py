@@ -20,9 +20,6 @@ st.markdown("""
     background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
     color: #e0e0ff;
 }
-.stApp {
-    background: #0f0f23;
-}
 .job-card {
     background: linear-gradient(145deg, #16213e, #1e2a5c);
     border-radius: 20px;
@@ -59,8 +56,9 @@ st.markdown("""
 .info-label {
     font-weight: 600;
     color: #8899cc;
-    margin-top: 12px;
-    font-size: 0.9rem;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
 }
 .stButton>button {
     border-radius: 50px;
@@ -86,22 +84,13 @@ st.markdown("""
 csv_data = """Timestamp,Business Name,Job Title,City,State,Zip Code,Job Type,Hourly Rate,Monthly Rate,Website,Phone,Job Description,Requirements,Benefits
 2026-07-04 20:06:12,ABC Test Company 1,DemoJob.Job1,Minneapolis,MN,55401,Full Time,75.0,,abc.com,555-123-4567,test,test,test"""
 
-# For demo purposes - you can replace this with st.file_uploader later
 df_raw = pd.read_csv(io.StringIO(csv_data))
 
-# Convert raw data to the app's job format + extra fields
+# Convert to job format
 jobs_list = []
 for _, row in df_raw.iterrows():
-    # Build location string
     location = f"{row['City']}, {row['State']} {row['Zip Code']}"
-    
-    # Salary handling (Hourly or Monthly)
-    if pd.notna(row['Hourly Rate']) and row['Hourly Rate'] != "":
-        salary = f"${float(row['Hourly Rate']):.0f}/hr"
-    elif pd.notna(row['Monthly Rate']) and row['Monthly Rate'] != "":
-        salary = f"${float(row['Monthly Rate']):.0f}/mo"
-    else:
-        salary = "Salary not listed"
+    salary = f"${float(row['Hourly Rate']):.0f}/hr" if pd.notna(row['Hourly Rate']) else "Salary not listed"
     
     jobs_list.append({
         "id": str(uuid.uuid4()),
@@ -109,18 +98,17 @@ for _, row in df_raw.iterrows():
         "company": row['Business Name'],
         "location": location,
         "salary": salary,
-        "skills": row['Job Description'],           # Using description as skills for now
-        "posted": row['Timestamp'].split()[0],      # Just the date
+        "skills": row['Job Description'],
+        "posted": row['Timestamp'].split()[0],
         "type": row['Job Type'],
-        "match": 92,                                # Default high match for demo
-        "website": row['Website'],
-        "phone": row['Phone'],
-        "description": row['Job Description'],
-        "requirements": row['Requirements'],
-        "benefits": row['Benefits']
+        "match": 92,
+        "website": row.get('Website', ''),
+        "phone": row.get('Phone', ''),
+        "description": row.get('Job Description', ''),
+        "requirements": row.get('Requirements', ''),
+        "benefits": row.get('Benefits', '')
     })
 
-# ====================== SESSION STATE ======================
 if "jobs" not in st.session_state:
     st.session_state.jobs = pd.DataFrame(jobs_list)
 
@@ -133,7 +121,7 @@ with st.sidebar:
     st.caption("Modern jobs. Zero spam.")
     st.divider()
     if st.button("Clear All Data (Dev)", use_container_width=True):
-        st.session_state.jobs = pd.DataFrame(jobs_list)  # Reset to CSV data
+        st.session_state.jobs = pd.DataFrame(jobs_list)
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
@@ -143,43 +131,30 @@ with st.sidebar:
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
 st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# ====================== DISCOVER JOBS ======================
+# Filters (unchanged)
 st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
 with col1:
-    search = st.text_input("■ Search titles, skills, companies...", 
-                          placeholder="DemoJob, Python, ABC Test")
-
+    search = st.text_input("■ Search titles, skills, companies...", placeholder="DemoJob, Python, ABC Test")
 with col2:
-    location_filter = st.selectbox("■ Location", 
-                                  ["All Locations"] + list(df_raw['City'].unique()))
-
+    location_filter = st.selectbox("■ Location", ["All Locations"] + list(df_raw['City'].unique()))
 with col3:
-    job_type = st.selectbox("■ Type", 
-                           ["All Types"] + list(df_raw['Job Type'].unique()))
-
+    job_type = st.selectbox("■ Type", ["All Types"] + list(df_raw['Job Type'].unique()))
 with col4:
     min_salary = st.slider("■ Min Hourly ($)", 0, 200, 50)
 
-# Filter logic
+# Filtering logic
 df = st.session_state.jobs.copy()
-
 if search:
-    df = df[
-        df['title'].str.contains(search, case=False) | 
-        df['skills'].str.contains(search, case=False) | 
-        df['company'].str.contains(search, case=False) |
-        df['location'].str.contains(search, case=False)
-    ]
-
+    df = df[df['title'].str.contains(search, case=False) | 
+            df['company'].str.contains(search, case=False) |
+            df['description'].str.contains(search, case=False)]
 if location_filter != "All Locations":
     df = df[df['location'].str.contains(location_filter, case=False)]
-
 if job_type != "All Types":
     df = df[df['type'] == job_type]
 
-# Simple salary filter (for hourly)
 def extract_min_salary(s):
     nums = re.findall(r'\d+', s)
     return int(nums[0]) if nums else 0
@@ -188,56 +163,57 @@ df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"Showing **{len(df)}** high-quality opportunities")
 
+# ====================== JOB CARDS ======================
 if df.empty:
-    st.warning("No jobs match your filters. Try broadening your search!")
+    st.warning("No jobs match your filters.")
 else:
     for _, job in df.iterrows():
-        with st.container():
-            st.markdown(f"""
-            <div class="job-card">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div class="job-title">{job['title']}</div>
-                        <div class="company">■ {job['company']}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:1.1rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
-                        <div style="font-size:0.85rem; color:#8899cc;">{job['location']}</div>
-                    </div>
+        st.markdown(f"""
+        <div class="job-card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                    <div class="job-title">{job['title']}</div>
+                    <div class="company">■ {job['company']}</div>
                 </div>
-                
-                <div style="margin:16px 0;">
-                    <span class="badge">{job['type']}</span>
-                    <span class="badge">Posted {job['posted']}</span>
-                    <span class="badge">Match: {job['match']}%</span>
-                </div>
-                
-                <div class="info-label">Description</div>
-                <div style="color:#b0b8ff; margin-bottom:12px;">{job['description']}</div>
-                
-                <div class="info-label">Requirements</div>
-                <div style="color:#b0b8ff; margin-bottom:12px;">{job['requirements']}</div>
-                
-                <div class="info-label">Benefits</div>
-                <div style="color:#b0b8ff; margin-bottom:12px;">{job['benefits']}</div>
-                
-                <div style="display:flex; gap:20px; font-size:0.9rem; color:#8899cc;">
-                    <div><strong>Website:</strong> <a href="https://{job['website']}" target="_blank">{job['website']}</a></div>
-                    <div><strong>Phone:</strong> {job['phone']}</div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
+                    <div style="color:#8899cc;">{job['location']}</div>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
 
-            col_a, col_b = st.columns([1, 4])
-            with col_a:
-                if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
-                    st.session_state.applications.append({
-                        "job": job['title'],
-                        "company": job['company'],
-                        "date": datetime.now()
-                    })
-                    st.success(f"Application sent to **{job['company']}** for **{job['title']}**!")
-                    st.balloons()
+            <div style="margin:18px 0 16px 0;">
+                <span class="badge">{job['type']}</span>
+                <span class="badge">Posted {job['posted']}</span>
+                <span class="badge">Match: {job['match']}%</span>
+            </div>
+
+            <div class="info-label">Description</div>
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job['description']}</div>
+
+            <div class="info-label">Requirements</div>
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job['requirements']}</div>
+
+            <div class="info-label">Benefits</div>
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;">{job['benefits']}</div>
+
+            <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
+                <div><strong>Website:</strong> <a href="https://{job['website']}" target="_blank" style="color:#6e8cff;">{job['website']}</a></div>
+                <div><strong>Phone:</strong> {job['phone']}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Apply button
+        col_a, col_b = st.columns([1, 4])
+        with col_a:
+            if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
+                st.session_state.applications.append({
+                    "job": job['title'],
+                    "company": job['company'],
+                    "date": datetime.now()
+                })
+                st.success(f"✅ Application sent to **{job['company']}**!")
+                st.balloons()
 
 # ====================== FOOTER ======================
 st.markdown("---")
