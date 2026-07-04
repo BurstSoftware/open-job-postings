@@ -7,7 +7,7 @@ import re
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="AltIndeed",
-    page_icon="■",
+    page_icon="🚀",          # Fixed: valid emoji
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -126,7 +126,7 @@ with st.sidebar:
         st.session_state.applications = []
         st.rerun()
     st.markdown("---")
-    st.info("Prototype • Built with ❤■ for better hiring", icon="■")
+    st.info("Prototype • Built with ❤️ for better hiring", icon="🚀")  # Fixed
 
 # ====================== MAIN APP ======================
 st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
