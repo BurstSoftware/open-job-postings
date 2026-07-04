@@ -208,18 +208,14 @@ else:
         </div>
         """)
 
-        # Apply Now Button
+        # Apply Now Button - Direct Link (No redirect message)
         col_a, col_b = st.columns([1, 4])
         with col_a:
-            if st.button("Apply Now", key=f"apply_{job['id']}", use_container_width=True):
-                st.success("🔗 Redirecting to application page...")
-                st.markdown(f'<meta http-equiv="refresh" content="0; url={job["website"]}">', unsafe_allow_html=True)
-                st.session_state.applications.append({
-                    "job": job['title'],
-                    "company": job['company'],
-                    "date": datetime.now()
-                })
-                st.balloons()
+            st.link_button(
+                label="🚀 Apply Now",
+                url=job["website"],
+                use_container_width=True
+            )
 
 # ====================== FOOTER ======================
 st.markdown("---")
