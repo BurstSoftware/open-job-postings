@@ -5,6 +5,8 @@
 **Started:** July 2, 2026  
 **Status:** Early Development / Research Phase
 
+<img width="1617" height="1106" alt="open job postings vs indeed" src="https://github.com/user-attachments/assets/3e6646da-7f10-4152-8822-d97df20e4eaf" />
+
 ---
 
 ## Elevator Pitch
