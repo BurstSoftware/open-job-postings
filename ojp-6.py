@@ -203,7 +203,7 @@ else:
             </div>
 
             <div style="margin-top:16px; padding-top:12px; border-top:1px solid #334477; font-size:0.9rem; color:#8899cc;">
-                <strong>Amazon Associate ID:</strong> {job['referrer']}
+                <strong>Referred By:</strong> {job['referrer']}
             </div>
         </div>
         """)
