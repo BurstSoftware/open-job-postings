@@ -16,3 +16,7 @@ Allow the user to set a preference using ai to search for jobs using a location 
 Location based search for opportunites.
 Saved location based searches for opportunites.
 
+Skills based searches
+Location based searches
+Requirements based searches
+
