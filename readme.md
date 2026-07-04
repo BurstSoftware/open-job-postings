@@ -130,6 +130,14 @@ Created a udpated prototype using streamlit cloud, streamlit python 3.14.6 and:
 streamlit>=1.38.0
 pandas>=2.2.0
 
+https://open-job-postings-v1-4-3.streamlit.app/
+
+7/3/26
+
+Created a udpated prototype using streamlit cloud, streamlit python 3.14.6 and: 
+streamlit>=1.38.0
+pandas>=2.2.0
+
 open-job-postings-v1-3.py
 https://open-job-postings-v1-3.streamlit.app/
 
