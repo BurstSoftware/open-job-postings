@@ -89,7 +89,7 @@ if "jobs" not in st.session_state:
         "website": "http://amazon.com/getpaid",
         "phone": "N/A",
         "description": "Picking, Packing, Sorting, Stowing",
-        "requirements": "lifting up to 49lbs, twisting, bending, stooping",
+        "requirements": "Lifting up to 49lbs, twisting, bending, stooping",
         "benefits": "Benefits available through the A to Z app",
         "referrer": "narossoh"
     }]
