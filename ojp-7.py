@@ -87,7 +87,7 @@ if "jobs" not in st.session_state:
         "type": "Part Time >19 hours a week",
         "match": 92,
         "website": "http://amazon.com/getpaid",
-        "phone": "555-123-4567",
+        "phone": "N/A",
         "description": "Picking, Packing, Sorting, Stowing",
         "requirements": "lifting up to 49lbs, twisting, bending, stooping",
         "benefits": "Benefits available through the A to Z app",
