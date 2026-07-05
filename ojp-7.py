@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import uuid
 import re
 import json
@@ -64,26 +63,20 @@ with st.sidebar:
 
     model_options = [
         "meta/llama-3.1-70b-instruct",
-        "nvidia/llama-3.1-nemotron-70b-instruct",
-        "meta/llama-3.1-8b-instruct",
-        "mistralai/mistral-nemo"
     ]
     selected_model = st.selectbox("Select Model", model_options, index=0)
     st.session_state.selected_model = selected_model
 
     st.divider()
     page = st.radio("Navigate", 
-                    ["📋 Job Listings", "🔍 AI Job Finder", "💬 AI Job Assistant"],
+                    ["📋 Job Listings", "💬 AI Job Assistant"],
                     label_visibility="collapsed")
 
     st.divider()
     if st.button("Clear All Data (Dev)", use_container_width=True):
-        if "jobs" in st.session_state:
-            del st.session_state.jobs
-        if "chat_history" in st.session_state:
-            del st.session_state.chat_history
-        if "applications" in st.session_state:
-            del st.session_state.applications
+        for key in ["jobs", "chat_history", "applications"]:
+            if key in st.session_state:
+                del st.session_state[key]
         st.rerun()
     
     st.info("Prototype with NVIDIA NIM", icon="ℹ️")
@@ -212,38 +205,6 @@ if page == "📋 Job Listings":
             with col_a:
                 st.link_button("🚀 Apply Now", url=job.get("website", "#"), use_container_width=True)
 
-elif page == "🔍 AI Job Finder":
-    st.markdown('<h1 class="header-title">AI Job Finder</h1>', unsafe_allow_html=True)
-    st.markdown("### 🚀 Powered by NVIDIA NIM")
-
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        query = st.text_input("Describe the jobs you're looking for...", 
-                             "warehouse jobs at WMN7 in North Mankato, MN")
-    with col2:
-        if st.button("🔍 Generate Jobs", type="primary", use_container_width=True):
-            if query:
-                with st.spinner("Querying NVIDIA LLM..."):
-                    prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
-                    Each object must have: title, company, location, salary, type, description, requirements, benefits."""
-                    result = call_nvidia_llm(prompt, temperature=0.6)
-                    try:
-                        new_jobs = json.loads(result)
-                        if isinstance(new_jobs, list):
-                            new_df = pd.DataFrame(new_jobs)
-                            for col in ["id","posted","match","website","phone","referrer"]:
-                                if col not in new_df.columns: 
-                                    new_df[col] = [""] * len(new_df)
-                            st.session_state.jobs = pd.concat([st.session_state.jobs, new_df], ignore_index=True)
-                            st.success(f"Added {len(new_df)} new jobs!")
-                            st.rerun()
-                    except:
-                        st.info("LLM Response (raw):")
-                        st.code(result)
-
-    st.markdown("### Current Job Listings")
-    st.dataframe(st.session_state.jobs, use_container_width=True)
-
 elif page == "💬 AI Job Assistant":
     st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
     st.markdown("### 💬 Chat with NVIDIA NIM")
@@ -270,4 +231,4 @@ Answer helpfully and concisely."""
         st.rerun()
 
 st.markdown("---")
-st.caption("Open Job Postings")   # ← Updated as requested
+st.caption("Open Job Postings")
