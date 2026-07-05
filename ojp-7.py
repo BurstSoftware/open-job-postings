@@ -1,9 +1,17 @@
-# maintain the current code base:   import streamlit as st
+import streamlit as st
 import pandas as pd
 import uuid
 import re
 
-# Try to import OpenAI
+# ====================== CONFIG (MUST BE FIRST) ======================
+st.set_page_config(
+    page_title="Open Job Postings • AI Powered",
+    page_icon="■",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Try to import OpenAI AFTER set_page_config
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
@@ -11,14 +19,6 @@ except ImportError:
     OPENAI_AVAILABLE = False
     st.error("❌ `openai` package is not installed. Run: `pip install openai`")
     st.stop()
-
-# ====================== CONFIG ======================
-st.set_page_config(
-    page_title="Open Job Postings • AI Powered",
-    page_icon="■",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # ====================== CUSTOM CSS ======================
 st.markdown("""
@@ -222,7 +222,6 @@ if page == "📋 Job Listings":
                     st.success("✅ Application submitted!")
 
 elif page == "💬 AI Job Assistant":
-    # ==================== UPDATED AI JOB ASSISTANT ====================
     st.markdown('<h1 class="header-title">Define Your Perfect Job</h1>', unsafe_allow_html=True)
     
     # ====================== CHAT INTERFACE ======================
