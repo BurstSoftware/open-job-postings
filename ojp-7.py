@@ -38,6 +38,7 @@ st.markdown("""
 .chat-message { padding: 12px 16px; border-radius: 12px; margin: 8px 0; }
 .user-msg { background: #2a3b6e; margin-left: 20%; }
 .ai-msg { background: #1e2a5c; margin-right: 20%; }
+.match-bar { height: 6px; background: linear-gradient(90deg, #00ff9d, #6e8cff); border-radius: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -73,26 +74,76 @@ with st.sidebar:
                     label_visibility="collapsed")
 
     st.divider()
-    st.info("Prototype with NVIDIA NIM", icon="ℹ️")
+    st.info("Prototype with NVIDIA NIM • 50-State Search", icon="ℹ️")
 
 # ====================== SESSION STATE INITIALIZATION ======================
 if "jobs" not in st.session_state:
-    jobs_list = [{
-        "id": str(uuid.uuid4()),
-        "title": "Amazon Flex - X / L1",
-        "company": "Amazon",
-        "location": "North Mankato, MN 56003",
-        "salary": "$19/hr",
-        "posted": "2026-07-04",
-        "type": "Part Time >19 hours a week",
-        "match": 92,
-        "website": "http://amazon.com/getpaid",
-        "phone": "N/A",
-        "description": "Picking, Packing, Sorting, Stowing",
-        "requirements": "Lifting up to 49lbs, twisting, bending, stooping",
-        "benefits": "Benefits available through the A to Z app",
-        "referrer": "narossoh"
-    }]
+    jobs_list = [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Amazon Flex - X / L1",
+            "company": "Amazon",
+            "location": "North Mankato, MN",
+            "salary": "$19/hr",
+            "posted": "2026-07-04",
+            "type": "Part Time",
+            "match": 92,
+            "website": "http://amazon.com/getpaid",
+            "phone": "N/A",
+            "description": "Picking, Packing, Sorting, Stowing in a fast-paced warehouse environment.",
+            "requirements": "Lifting up to 49lbs, twisting, bending, stooping. Must have reliable transportation.",
+            "benefits": "Flexible hours, benefits through A to Z app, weekly pay.",
+            "referrer": "narossoh"
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Warehouse Associate",
+            "company": "Target",
+            "location": "Austin, TX",
+            "salary": "$18/hr",
+            "posted": "2026-07-03",
+            "type": "Full Time",
+            "match": 88,
+            "website": "#",
+            "phone": "N/A",
+            "description": "Order fulfillment, inventory management, and shipping.",
+            "requirements": "Previous warehouse experience preferred.",
+            "benefits": "Health insurance, 401k, employee discount.",
+            "referrer": "targetcareers"
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Delivery Driver",
+            "company": "DoorDash",
+            "location": "Los Angeles, CA",
+            "salary": "$20-28/hr",
+            "posted": "2026-07-02",
+            "type": "Part Time",
+            "match": 95,
+            "website": "#",
+            "phone": "N/A",
+            "description": "Flexible delivery gigs using your own vehicle.",
+            "requirements": "Valid driver's license, insured vehicle.",
+            "benefits": "Instant cashout, flexible schedule.",
+            "referrer": "doordash"
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Software Engineer - Backend",
+            "company": "Stripe",
+            "location": "New York, NY",
+            "salary": "$140k-180k",
+            "posted": "2026-07-01",
+            "type": "Full Time",
+            "match": 78,
+            "website": "#",
+            "phone": "N/A",
+            "description": "Build scalable payment infrastructure.",
+            "requirements": "Python, Go, or Java experience.",
+            "benefits": "Equity, unlimited PTO, top-tier health.",
+            "referrer": "stripe"
+        }
+    ]
     st.session_state.jobs = pd.DataFrame(jobs_list)
 
 if "chat_history" not in st.session_state:
@@ -140,32 +191,46 @@ def extract_min_salary(s):
 
 def apply_filters_to_jobs(filters):
     df = st.session_state.jobs.copy()
+    
     if filters["search"]:
-        df = df[df['title'].str.contains(filters["search"], case=False, na=False) | 
-                df['company'].str.contains(filters["search"], case=False, na=False) |
-                df['description'].str.contains(filters["search"], case=False, na=False)]
+        df = df[
+            df['title'].str.contains(filters["search"], case=False, na=False) | 
+            df['company'].str.contains(filters["search"], case=False, na=False) |
+            df['description'].str.contains(filters["search"], case=False, na=False)
+        ]
+    
     if filters["location"] != "All Locations":
         df = df[df['location'].str.contains(filters["location"], case=False, na=False)]
+    
     if filters["job_type"] != "All Types":
-        df = df[df['type'] == filters["job_type"]]
-
+        df = df[df['type'].str.contains(filters["job_type"], case=False, na=False)]
+    
     df = df[df['salary'].apply(extract_min_salary) >= filters["min_salary"]]
+    # Sort by match score (higher is better)
+    df = df.sort_values(by="match", ascending=False)
     return df
+
+# 50 US States
+US_STATES = [
+    "All Locations", "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
+    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", 
+    "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", 
+    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", 
+    "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", 
+    "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
+    "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", 
+    "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+]
+
+JOB_TYPES = ["All Types", "Full Time", "Part Time", "Contract", "Remote"]
 
 # ====================== PAGE ROUTING ======================
 if page == "📋 Job Listings":
     st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
     st.markdown("### ■ Discover Your Next Role")
-    st.info("Search & filter controls have been moved to the **AI Job Assistant** for a more intelligent experience.")
-
-    # Show current saved filters
-    if st.session_state.saved_search_filters["search"] or st.session_state.saved_search_filters["location"] != "All Locations":
-        st.caption(f"**Active Saved Search:** {st.session_state.saved_search_filters['search'] or 'No keyword'} | "
-                   f"{st.session_state.saved_search_filters['location']} | "
-                   f"{st.session_state.saved_search_filters['job_type']}")
-
+    
     df = apply_filters_to_jobs(st.session_state.saved_search_filters)
-    st.caption(f"Showing **{len(df)}** opportunities matching your saved criteria")
+    st.caption(f"Showing **{len(df)}** opportunities")
 
     if df.empty:
         st.warning("No jobs match your saved filters.")
@@ -204,74 +269,89 @@ if page == "📋 Job Listings":
             """)
             col_a, _ = st.columns([1, 4])
             with col_a:
-                st.link_button("🚀 Apply Now", url=job.get("website", "#"), use_container_width=True)
+                if st.button("🚀 Apply Now", key=f"apply_{job['id']}"):
+                    st.session_state.applications.append(job.to_dict())
+                    st.success("✅ Application submitted!")
 
 elif page == "💬 AI Job Assistant":
     st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
-    st.markdown("### 💬 Chat with NVIDIA NIM • Intelligent Job Search")
+    st.markdown("### 💬 Chat with NVIDIA NIM • Smart 50-State Job Search")
 
-    # ====================== SEARCH FILTERS (Moved Here) ======================
-    st.subheader("🔍 Define Your Job Search")
-    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+    # ====================== ENHANCED SEARCH FILTERS ======================
+    st.subheader("🔍 Define Your Perfect Job")
+    col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 2])
     
     with col1:
-        search = st.text_input("■ Search titles, skills, companies...", 
+        search = st.text_input("■ Job Title / Skills / Company", 
                               value=st.session_state.saved_search_filters["search"],
-                              placeholder="Amazon Flex, warehouse, driver")
+                              placeholder="Warehouse, driver, software engineer...")
     with col2:
-        location_filter = st.selectbox("■ Location", 
-                                      ["All Locations", "North Mankato"],
-                                      index=["All Locations", "North Mankato"].index(st.session_state.saved_search_filters["location"]))
+        location_filter = st.selectbox("■ State", 
+                                      US_STATES,
+                                      index=US_STATES.index(st.session_state.saved_search_filters["location"]))
     with col3:
-        job_type = st.selectbox("■ Type", 
-                               ["All Types", "Part Time >19 hours a week"],
-                               index=["All Types", "Part Time >19 hours a week"].index(st.session_state.saved_search_filters["job_type"]))
+        job_type = st.selectbox("■ Job Type", 
+                               JOB_TYPES,
+                               index=JOB_TYPES.index(st.session_state.saved_search_filters["job_type"]))
     with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 
+        min_salary = st.slider("■ Min Hourly ($)", 0, 300, 
                               value=st.session_state.saved_search_filters["min_salary"])
+    with col5:
+        st.write("")  # Spacer
 
-    if st.button("💾 Save Search Criteria", type="primary", use_container_width=True):
+    if st.button("💾 Save & Search", type="primary", use_container_width=True):
         st.session_state.saved_search_filters = {
             "search": search,
             "location": location_filter,
             "job_type": job_type,
             "min_salary": min_salary
         }
-        st.success("✅ Search criteria saved! The AI will now use these when searching for jobs.", icon="🔄")
+        st.success("✅ Filters saved! Chat below to get personalized recommendations.", icon="🔄")
         st.rerun()
 
     st.divider()
 
-    # ====================== CHAT ======================
+    # ====================== CHAT INTERFACE ======================
+    st.subheader("💬 Ask Anything")
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
         else:
-            st.markdown(f'<div class="chat-message ai-msg"><strong>AI:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="chat-message ai-msg"><strong>🤖 AI Assistant:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
 
-    if prompt := st.chat_input("Ask anything about jobs, applications, or career advice... (Press Enter to search with your saved filters)"):
+    if prompt := st.chat_input("Example: Show me warehouse jobs in Texas paying over $18/hr..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
-        with st.spinner("Thinking with NVIDIA NIM + searching jobs..."):
+        with st.spinner("🔍 Searching 50 states + analyzing best matches..."):
             filters = st.session_state.saved_search_filters
             filtered_jobs = apply_filters_to_jobs(filters)
             
-            context = str(filtered_jobs.head(10).to_dict(orient="records"))
+            # Limit to top 5 for context
+            top_jobs = filtered_jobs.head(5)
+            context = str(top_jobs.to_dict(orient="records"))
             
-            full_prompt = f"""You are a helpful AI career assistant.
-Current saved search filters: {filters}
-Found {len(filtered_jobs)} jobs matching these filters.
+            full_prompt = f"""You are an expert career coach using real-time job data.
 
-Context (matching jobs): {context}
+Current filters: {filters}
+Found {len(filtered_jobs)} matching jobs.
 
-User Question: {prompt}
+Top jobs (use these to make recommendations):
+{context}
 
-Answer helpfully and concisely. If the user is asking for job recommendations, base them on the saved filters and the jobs above."""
-            
-            response = call_nvidia_llm(full_prompt, temperature=0.7)
+User request: {prompt}
+
+Rules:
+- Be friendly, concise, and actionable.
+- Always recommend 3-5 specific jobs from the list above when possible.
+- Highlight why each job matches the user.
+- Include salary, location, and a direct call-to-action.
+- If no jobs match, suggest broadening filters."""
+
+            response = call_nvidia_llm(full_prompt, temperature=0.75)
         
         st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.rerun()
 
+# Footer
 st.markdown("---")
-st.caption("Open Job Postings • AI Powered with NVIDIA NIM")
+st.caption("Open Job Postings • Powered by NVIDIA NIM • 50-State AI Search")
