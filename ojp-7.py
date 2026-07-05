@@ -85,7 +85,7 @@ with st.sidebar:
 if "jobs" not in st.session_state:
     jobs_list = [{
         "id": str(uuid.uuid4()),
-        "title": "Amazon Flex - X",
+        "title": "Amazon Flex - X / L1",
         "company": "Amazon",
         "location": "North Mankato, MN 56003",
         "salary": "$19/hr",
@@ -94,9 +94,9 @@ if "jobs" not in st.session_state:
         "match": 92,
         "website": "http://amazon.com/getpaid",
         "phone": "555-123-4567",
-        "description": "picking, packing, stowing, water spider",
+        "description": "Picking, Packing, Sorting, Stowing",
         "requirements": "lifting up to 49lbs, twisting, bending, stooping",
-        "benefits": "benefits available through the A to Z app",
+        "benefits": "Benefits available through the A to Z app",
         "referrer": "narossoh"
     }]
     st.session_state.jobs = pd.DataFrame(jobs_list)
