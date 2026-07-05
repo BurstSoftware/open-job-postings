@@ -94,54 +94,6 @@ if "jobs" not in st.session_state:
             "requirements": "Lifting up to 49lbs, twisting, bending, stooping. Must have reliable transportation.",
             "benefits": "Flexible hours, benefits through A to Z app, weekly pay.",
             "referrer": "narossoh"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Warehouse Associate",
-            "company": "Target",
-            "location": "Austin, TX",
-            "salary": "$18/hr",
-            "posted": "2026-07-03",
-            "type": "Full Time",
-            "match": 88,
-            "website": "#",
-            "phone": "N/A",
-            "description": "Order fulfillment, inventory management, and shipping.",
-            "requirements": "Previous warehouse experience preferred.",
-            "benefits": "Health insurance, 401k, employee discount.",
-            "referrer": "targetcareers"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Delivery Driver",
-            "company": "DoorDash",
-            "location": "Los Angeles, CA",
-            "salary": "$20-28/hr",
-            "posted": "2026-07-02",
-            "type": "Part Time",
-            "match": 95,
-            "website": "#",
-            "phone": "N/A",
-            "description": "Flexible delivery gigs using your own vehicle.",
-            "requirements": "Valid driver's license, insured vehicle.",
-            "benefits": "Instant cashout, flexible schedule.",
-            "referrer": "doordash"
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Software Engineer - Backend",
-            "company": "Stripe",
-            "location": "New York, NY",
-            "salary": "$140k-180k",
-            "posted": "2026-07-01",
-            "type": "Full Time",
-            "match": 78,
-            "website": "#",
-            "phone": "N/A",
-            "description": "Build scalable payment infrastructure.",
-            "requirements": "Python, Go, or Java experience.",
-            "benefits": "Equity, unlimited PTO, top-tier health.",
-            "referrer": "stripe"
         }
     ]
     st.session_state.jobs = pd.DataFrame(jobs_list)
