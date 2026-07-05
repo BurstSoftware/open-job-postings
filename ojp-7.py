@@ -1,4 +1,4 @@
-import streamlit as st
+# maintain the current code base:   import streamlit as st
 import pandas as pd
 import uuid
 import re
@@ -225,13 +225,6 @@ elif page == "💬 AI Job Assistant":
     # ==================== UPDATED AI JOB ASSISTANT ====================
     st.markdown('<h1 class="header-title">Define Your Perfect Job</h1>', unsafe_allow_html=True)
     
-    st.markdown("""
-    **Example:**  
-    *Fire Fighter, Minneapolis, Full Time, 75k Salary*
-    """)
-    
-    st.divider()
-
     # ====================== CHAT INTERFACE ======================
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
@@ -273,4 +266,4 @@ Rules:
 
 # Footer
 st.markdown("---")
-st.caption("Open Job Postings • Powered by NVIDIA NIM • 50-State AI Search")
+st.caption("Open Job Postings • Powered by NVIDIA NIM")
