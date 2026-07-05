@@ -98,6 +98,14 @@ if "jobs" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+if "saved_search_filters" not in st.session_state:
+    st.session_state.saved_search_filters = {
+        "search": "",
+        "location": "All Locations",
+        "job_type": "All Types",
+        "min_salary": 15
+    }
+
 if "applications" not in st.session_state:
     st.session_state.applications = []
 
@@ -130,38 +138,37 @@ def extract_min_salary(s):
     nums = re.findall(r'\d+', str(s))
     return int(nums[0]) if nums else 0
 
+def apply_filters_to_jobs(filters):
+    df = st.session_state.jobs.copy()
+    if filters["search"]:
+        df = df[df['title'].str.contains(filters["search"], case=False, na=False) | 
+                df['company'].str.contains(filters["search"], case=False, na=False) |
+                df['description'].str.contains(filters["search"], case=False, na=False)]
+    if filters["location"] != "All Locations":
+        df = df[df['location'].str.contains(filters["location"], case=False, na=False)]
+    if filters["job_type"] != "All Types":
+        df = df[df['type'] == filters["job_type"]]
+
+    df = df[df['salary'].apply(extract_min_salary) >= filters["min_salary"]]
+    return df
+
 # ====================== PAGE ROUTING ======================
 if page == "📋 Job Listings":
     st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
     st.markdown("### ■ Discover Your Next Role")
+    st.info("Search & filter controls have been moved to the **AI Job Assistant** for a more intelligent experience.")
 
-    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-    with col1:
-        search = st.text_input("■ Search titles, skills, companies...", placeholder="Amazon Flex, warehouse")
-    with col2:
-        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
-    with col3:
-        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
-    with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
+    # Show current saved filters
+    if st.session_state.saved_search_filters["search"] or st.session_state.saved_search_filters["location"] != "All Locations":
+        st.caption(f"**Active Saved Search:** {st.session_state.saved_search_filters['search'] or 'No keyword'} | "
+                   f"{st.session_state.saved_search_filters['location']} | "
+                   f"{st.session_state.saved_search_filters['job_type']}")
 
-    # Filtering
-    df = st.session_state.jobs.copy()
-    if search:
-        df = df[df['title'].str.contains(search, case=False, na=False) | 
-                df['company'].str.contains(search, case=False, na=False) |
-                df['description'].str.contains(search, case=False, na=False)]
-    if location_filter != "All Locations":
-        df = df[df['location'].str.contains(location_filter, case=False, na=False)]
-    if job_type != "All Types":
-        df = df[df['type'] == job_type]
-
-    df = df[df['salary'].apply(extract_min_salary) >= min_salary]
-
-    st.caption(f"Showing **{len(df)}** high-quality opportunities")
+    df = apply_filters_to_jobs(st.session_state.saved_search_filters)
+    st.caption(f"Showing **{len(df)}** opportunities matching your saved criteria")
 
     if df.empty:
-        st.warning("No jobs match your filters.")
+        st.warning("No jobs match your saved filters.")
     else:
         for _, job in df.iterrows():
             st.html(f"""
@@ -201,28 +208,70 @@ if page == "📋 Job Listings":
 
 elif page == "💬 AI Job Assistant":
     st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
-    st.markdown("### 💬 Chat with NVIDIA NIM")
+    st.markdown("### 💬 Chat with NVIDIA NIM • Intelligent Job Search")
 
+    # ====================== SEARCH FILTERS (Moved Here) ======================
+    st.subheader("🔍 Define Your Job Search")
+    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+    
+    with col1:
+        search = st.text_input("■ Search titles, skills, companies...", 
+                              value=st.session_state.saved_search_filters["search"],
+                              placeholder="Amazon Flex, warehouse, driver")
+    with col2:
+        location_filter = st.selectbox("■ Location", 
+                                      ["All Locations", "North Mankato"],
+                                      index=["All Locations", "North Mankato"].index(st.session_state.saved_search_filters["location"]))
+    with col3:
+        job_type = st.selectbox("■ Type", 
+                               ["All Types", "Part Time >19 hours a week"],
+                               index=["All Types", "Part Time >19 hours a week"].index(st.session_state.saved_search_filters["job_type"]))
+    with col4:
+        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 
+                              value=st.session_state.saved_search_filters["min_salary"])
+
+    if st.button("💾 Save Search Criteria", type="primary", use_container_width=True):
+        st.session_state.saved_search_filters = {
+            "search": search,
+            "location": location_filter,
+            "job_type": job_type,
+            "min_salary": min_salary
+        }
+        st.success("✅ Search criteria saved! The AI will now use these when searching for jobs.", icon="🔄")
+        st.rerun()
+
+    st.divider()
+
+    # ====================== CHAT ======================
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-message ai-msg"><strong>AI:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
 
-    if prompt := st.chat_input("Ask anything about jobs, applications, or career advice..."):
+    if prompt := st.chat_input("Ask anything about jobs, applications, or career advice... (Press Enter to search with your saved filters)"):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
-        with st.spinner("Thinking with NVIDIA NIM..."):
-            context = str(st.session_state.jobs.head(8).to_dict(orient="records"))
+        with st.spinner("Thinking with NVIDIA NIM + searching jobs..."):
+            filters = st.session_state.saved_search_filters
+            filtered_jobs = apply_filters_to_jobs(filters)
+            
+            context = str(filtered_jobs.head(10).to_dict(orient="records"))
+            
             full_prompt = f"""You are a helpful AI career assistant.
-Context (recent jobs): {context}
+Current saved search filters: {filters}
+Found {len(filtered_jobs)} jobs matching these filters.
+
+Context (matching jobs): {context}
 
 User Question: {prompt}
-Answer helpfully and concisely."""
+
+Answer helpfully and concisely. If the user is asking for job recommendations, base them on the saved filters and the jobs above."""
+            
             response = call_nvidia_llm(full_prompt, temperature=0.7)
         
         st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.rerun()
 
 st.markdown("---")
-st.caption("Open Job Postings")
+st.caption("Open Job Postings • AI Powered with NVIDIA NIM")
