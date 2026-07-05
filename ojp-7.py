@@ -73,12 +73,6 @@ with st.sidebar:
                     label_visibility="collapsed")
 
     st.divider()
-    if st.button("Clear All Data (Dev)", use_container_width=True):
-        for key in ["jobs", "chat_history", "applications"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.rerun()
-    
     st.info("Prototype with NVIDIA NIM", icon="ℹ️")
 
 # ====================== SESSION STATE INITIALIZATION ======================
