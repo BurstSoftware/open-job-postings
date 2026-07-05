@@ -277,49 +277,19 @@ elif page == "💬 AI Job Assistant":
     st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
     st.markdown("### 💬 Chat with NVIDIA NIM • Smart 50-State Job Search")
 
-    # ====================== ENHANCED SEARCH FILTERS ======================
-    st.subheader("🔍 Define Your Perfect Job")
-    col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 2])
-    
-    with col1:
-        search = st.text_input("■ Job Title / Skills / Company", 
-                              value=st.session_state.saved_search_filters["search"],
-                              placeholder="Warehouse, driver, software engineer...")
-    with col2:
-        location_filter = st.selectbox("■ State", 
-                                      US_STATES,
-                                      index=US_STATES.index(st.session_state.saved_search_filters["location"]))
-    with col3:
-        job_type = st.selectbox("■ Job Type", 
-                               JOB_TYPES,
-                               index=JOB_TYPES.index(st.session_state.saved_search_filters["job_type"]))
-    with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 300, 
-                              value=st.session_state.saved_search_filters["min_salary"])
-    with col5:
-        st.write("")  # Spacer
-
-    if st.button("💾 Save & Search", type="primary", use_container_width=True):
-        st.session_state.saved_search_filters = {
-            "search": search,
-            "location": location_filter,
-            "job_type": job_type,
-            "min_salary": min_salary
-        }
-        st.success("✅ Filters saved! Chat below to get personalized recommendations.", icon="🔄")
-        st.rerun()
+    # Filters section removed as requested
 
     st.divider()
 
     # ====================== CHAT INTERFACE ======================
-    st.subheader("💬 Ask Anything")
+    st.subheader("Define Your Perfect Job")
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-message ai-msg"><strong>🤖 AI Assistant:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
 
-    if prompt := st.chat_input("Example: Show me warehouse jobs in Texas paying over $18/hr..."):
+    if prompt := st.chat_input("Example: Show me warehouse jobs in Minnesota paying over $18/hr..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
         with st.spinner("🔍 Searching 50 states + analyzing best matches..."):
