@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import uuid
 import re
-import json
 
 # Try to import OpenAI
 try:
@@ -158,21 +157,18 @@ def apply_filters_to_jobs(filters):
         df = df[df['type'].str.contains(filters["job_type"], case=False, na=False)]
     
     df = df[df['salary'].apply(extract_min_salary) >= filters["min_salary"]]
-    # Sort by match score (higher is better)
     df = df.sort_values(by="match", ascending=False)
     return df
 
-# 50 US States
-US_STATES = [
-    "All Locations", "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
-    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", 
-    "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", 
-    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", 
-    "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", 
-    "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
-    "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", 
-    "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
-]
+# 50 US States & Job Types
+US_STATES = ["All Locations", "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
+             "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", 
+             "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", 
+             "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", 
+             "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", 
+             "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
+             "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", 
+             "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
 
 JOB_TYPES = ["All Types", "Full Time", "Part Time", "Contract", "Remote"]
 
@@ -226,29 +222,30 @@ if page == "📋 Job Listings":
                     st.success("✅ Application submitted!")
 
 elif page == "💬 AI Job Assistant":
-    st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
-    st.markdown("### 💬 Chat with NVIDIA NIM • Smart 50-State Job Search")
-
-    # Filters section removed as requested
-
+    # ==================== UPDATED AI JOB ASSISTANT ====================
+    st.markdown('<h1 class="header-title">Define Your Perfect Job</h1>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    **Example:**  
+    *Fire Fighter, Minneapolis, Full Time, 75k Salary*
+    """)
+    
     st.divider()
 
     # ====================== CHAT INTERFACE ======================
-    st.subheader("Define Your Perfect Job")
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-message ai-msg"><strong>🤖 AI Assistant:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
 
-    if prompt := st.chat_input("Example: Show me warehouse jobs in Minnesota paying over $18/hr..."):
+    if prompt := st.chat_input("Describe your ideal job (e.g. Fire Fighter, Minneapolis, Full Time, 75k Salary...)"):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
         with st.spinner("🔍 Searching 50 states + analyzing best matches..."):
             filters = st.session_state.saved_search_filters
             filtered_jobs = apply_filters_to_jobs(filters)
             
-            # Limit to top 5 for context
             top_jobs = filtered_jobs.head(5)
             context = str(top_jobs.to_dict(orient="records"))
             
