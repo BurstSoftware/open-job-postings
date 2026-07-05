@@ -92,19 +92,19 @@ with st.sidebar:
 if "jobs" not in st.session_state:
     jobs_list = [{
         "id": str(uuid.uuid4()),
-        "title": "Amazon Flex - X",
-        "company": "Amazon",
-        "location": "North Mankato, MN 56003",
-        "salary": "$19/hr",
+        "title": "DemoJob.Job1",
+        "company": "ABC Test Company 1",
+        "location": "Minneapolis, MN 55401",
+        "salary": "$75/hr",
         "posted": "2026-07-04",
-        "type": "Part Time >19 hours a week",
+        "type": "Full Time",
         "match": 92,
-        "website": "http://amazon.com/getpaid",
+        "website": "https://abc.com",
         "phone": "555-123-4567",
-        "description": "picking, packing, stowing, water spider",
-        "requirements": "lifting up to 49lbs, twisting, bending, stooping",
-        "benefits": "benefits available through the A to Z app",
-        "referrer": "narossoh"
+        "description": "test",
+        "requirements": "test",
+        "benefits": "test",
+        "referrer": "demo"
     }]
     st.session_state.jobs = pd.DataFrame(jobs_list)
 
@@ -152,9 +152,9 @@ if page == "📋 Job Listings":
     with col1:
         search = st.text_input("■ Search titles, skills, companies...", placeholder="Amazon Flex, warehouse")
     with col2:
-        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
+        location_filter = st.selectbox("■ Location", ["All Locations", "Minneapolis"])
     with col3:
-        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
+        job_type = st.selectbox("■ Type", ["All Types", "Full Time"])
     with col4:
         min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
 
@@ -189,21 +189,24 @@ if page == "📋 Job Listings":
                         <div style="color:#8899cc;">{job['location']}</div>
                     </div>
                 </div>
+                
                 <div style="margin:18px 0 16px 0;">
                     <span class="badge">{job['type']}</span>
                     <span class="badge">Posted {job['posted']}</span>
-                    <div style="margin-top: 10px;">
-                        <span class="badge">Match: {job.get('match', 85)}%</span>
-                    </div>
+                    <span class="badge">Match: {job.get('match', 85)}%</span>
                 </div>
+
                 <div class="info-label">Description</div>
                 <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job.get('description','')}</div>
+                
                 <div class="info-label">Requirements</div>
                 <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job.get('requirements','')}</div>
+                
                 <div class="info-label">Benefits</div>
                 <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;">{job.get('benefits','')}</div>
+                
                 <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply</a></div>
+                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">{job.get('website','abc.com')}</a></div>
                     <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
                 </div>
             </div>
@@ -216,12 +219,14 @@ elif page == "🔍 AI Job Finder":
     st.markdown('<h1 class="header-title">AI Job Finder</h1>', unsafe_allow_html=True)
     st.markdown("### 🚀 Powered by NVIDIA NIM")
 
-    col1, col2 = st.columns([3, 1])
+    # Aligned input + button
+    col1, col2 = st.columns([4, 1])
     with col1:
         query = st.text_input("Describe the jobs you're looking for...", 
-                             "warehouse jobs at WMN7 in North Mankato, MN")
+                             "warehouse jobs at WMN7 in North Mankato, MN",
+                             label_visibility="collapsed")
     with col2:
-        if st.button("🔍 Generate Jobs", type="primary", use_container_width=True):
+        if st.button("🔍 Search Jobs", type="primary", use_container_width=True):
             if query:
                 with st.spinner("Querying NVIDIA LLM..."):
                     prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
@@ -270,4 +275,4 @@ Answer helpfully and concisely."""
         st.rerun()
 
 st.markdown("---")
-st.caption("Open Job Postings")   # ← Updated as requested
+st.caption("Open Job Postings")
