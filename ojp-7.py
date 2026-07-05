@@ -192,7 +192,9 @@ if page == "📋 Job Listings":
                 <div style="margin:18px 0 16px 0;">
                     <span class="badge">{job['type']}</span>
                     <span class="badge">Posted {job['posted']}</span>
-                    <span class="badge">Match: {job.get('match', 85)}%</span>
+                    <div style="margin-top: 10px;">
+                        <span class="badge">Match: {job.get('match', 85)}%</span>
+                    </div>
                 </div>
                 <div class="info-label">Description</div>
                 <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job.get('description','')}</div>
@@ -239,7 +241,6 @@ elif page == "🔍 AI Job Finder":
                         st.info("LLM Response (raw):")
                         st.code(result)
 
-    # Optional: Show current jobs below
     st.markdown("### Current Job Listings")
     st.dataframe(st.session_state.jobs, use_container_width=True)
 
@@ -247,7 +248,6 @@ elif page == "💬 AI Job Assistant":
     st.markdown('<h1 class="header-title">AI Job Assistant</h1>', unsafe_allow_html=True)
     st.markdown("### 💬 Chat with NVIDIA NIM")
 
-    # Display chat history
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
@@ -270,4 +270,4 @@ Answer helpfully and concisely."""
         st.rerun()
 
 st.markdown("---")
-st.caption("Open Job Postings • NVIDIA NIM Integration • Single File Multi-Page App")
+st.caption("Open Job Postings")   # ← Updated as requested
