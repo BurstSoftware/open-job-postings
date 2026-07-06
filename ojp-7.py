@@ -22,19 +22,84 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS ======================
+# ====================== CUSTOM CSS (Enhanced for Beauty) ======================
 st.markdown("""
 <style>
     .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
-    .job-card { background: linear-gradient(145deg, #16213e, #1e2a5c); border-radius: 20px; padding: 24px; margin: 16px 0; border: 1px solid #4a5d9e; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    .job-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(74,93,158,0.4); border-color: #6e8cff; }
+    
+    /* Job Cards */
+    .job-card { 
+        background: linear-gradient(145deg, #16213e, #1e2a5c); 
+        border-radius: 20px; 
+        padding: 24px; 
+        margin: 16px 0; 
+        border: 1px solid #4a5d9e; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    }
+    .job-card:hover { 
+        transform: translateY(-8px); 
+        box-shadow: 0 20px 40px rgba(74,93,158,0.4); 
+        border-color: #6e8cff; 
+    }
     .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
     .company { color: #8f9eff; font-weight: 600; }
-    .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
-    .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
-    .chat-message { padding: 14px 18px; border-radius: 18px; margin: 10px 0; max-width: 85%; }
-    .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; }
-    .ai-msg { background: #16213e; color: #e0e0ff; margin-right: auto; border: 1px solid #334477; }
+    .badge { 
+        display: inline-block; 
+        background: #3a4a8c; 
+        color: #c0d0ff; 
+        padding: 6px 14px; 
+        border-radius: 30px; 
+        font-size: 0.85rem; 
+        margin-right: 10px; 
+        margin-bottom: 8px; 
+    }
+    .header-title { 
+        font-size: 2.8rem; 
+        background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
+        font-weight: 800; 
+    }
+
+    /* Beautiful Agent & Chat UI */
+    .agent-panel {
+        background: linear-gradient(145deg, #1e2a5c, #16213e); 
+        border-radius: 20px; 
+        padding: 24px; 
+        border: 1px solid #445588;
+        height: 100%;
+        text-align: center;
+    }
+    .chat-container {
+        background: #0f1629;
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid #334477;
+        min-height: 600px;
+        overflow-y: auto;
+    }
+    .chat-message {
+        padding: 16px 22px;
+        border-radius: 20px;
+        margin: 14px 0;
+        max-width: 85%;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    }
+    .user-msg {
+        background: linear-gradient(135deg, #4a6bff, #2a4fff);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 6px;
+    }
+    .ai-msg {
+        background: linear-gradient(145deg, #1e2a5c, #16213e);
+        color: #e0e0ff;
+        margin-right: auto;
+        border: 1px solid #445588;
+        border-bottom-left-radius: 6px;
+    }
+    .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,7 +122,6 @@ with st.sidebar:
         "deepseek-ai/deepseek-v3"
     ]
     st.session_state.selected_model = st.selectbox("Select Model", model_options, index=0)
-    
     st.slider("Temperature", 0.0, 1.0, 0.7, 0.05, key="temperature")
     
     st.divider()
@@ -107,34 +171,13 @@ if "chat_history" not in st.session_state:
 
 # ====================== AGENTS ======================
 AGENTS = {
-    "🎯 Job Match Analyst": {
-        "emoji": "📊",
-        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies based on the candidate profile."
-    },
-    "📝 CV Tailor": {
-        "emoji": "📄",
-        "system": "You are a world-class CV writer specialized in modern tailoring. Convert achievements into strong bullet points using action verbs. Optimize for ATS."
-    },
-    "✉️ Cover Letter Writer": {
-        "emoji": "💌",
-        "system": "You write compelling, non-generic cover letters. Use the candidate's real achievements and tie them directly to the job description with storytelling."
-    },
-    "🧠 Interview Coach": {
-        "emoji": "🎤",
-        "system": "You are a STAR-method interview coach. Generate behavioral answers, prepare for technical questions, and simulate mock interviews."
-    },
-    "🔍 Job Researcher": {
-        "emoji": "🔎",
-        "system": "You analyze available jobs and suggest best matches and hidden opportunities."
-    },
-    "📈 Salary & Negotiation": {
-        "emoji": "💰",
-        "system": "You provide realistic salary benchmarks and negotiation scripts."
-    },
-    "🚀 Upskill Advisor": {
-        "emoji": "📚",
-        "system": "You analyze skill gaps and create personalized learning plans."
-    }
+    "🎯 Job Match Analyst": {"emoji": "📊", "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies."},
+    "📝 CV Tailor": {"emoji": "📄", "system": "You are a world-class CV writer. Convert achievements into strong bullet points using action verbs. Optimize for ATS."},
+    "✉️ Cover Letter Writer": {"emoji": "💌", "system": "You write compelling, non-generic cover letters tied directly to the job description."},
+    "🧠 Interview Coach": {"emoji": "🎤", "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."},
+    "🔍 Job Researcher": {"emoji": "🔎", "system": "You analyze available jobs and suggest best matches and hidden opportunities."},
+    "📈 Salary & Negotiation": {"emoji": "💰", "system": "You provide realistic salary benchmarks and negotiation scripts."},
+    "🚀 Upskill Advisor": {"emoji": "📚", "system": "You analyze skill gaps and create personalized learning plans."}
 }
 
 # ====================== HELPER FUNCTIONS ======================
@@ -144,7 +187,7 @@ def get_nvidia_client():
         return None
     return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=st.session_state.nvidia_api_key)
 
-def call_nvidia_llm(messages, temperature=None, max_tokens=2048):
+def call_nvidia_llm(messages, temperature=None):
     client = get_nvidia_client()
     if not client:
         return "❌ Please provide a valid NVIDIA API key."
@@ -153,7 +196,7 @@ def call_nvidia_llm(messages, temperature=None, max_tokens=2048):
             model=st.session_state.get("selected_model"),
             messages=messages,
             temperature=temperature or st.session_state.get("temperature", 0.7),
-            max_tokens=max_tokens,
+            max_tokens=2048,
             stream=False
         )
         return response.choices[0].message.content
@@ -225,37 +268,44 @@ with tab1:
             </div>
             """)
 
-# ==================== TAB 2: AI JOB ASSISTANT (with Agents) ====================
+# ==================== TAB 2: BEAUTIFUL MULTI-AGENT STUDIO ====================
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
-    col1, col2 = st.columns([1, 3])
+    col_left, col_right = st.columns([1, 2.3])
     
-    with col1:
+    with col_left:
         st.subheader("Select Specialist")
-        selected_agent_name = st.selectbox("Agent", list(AGENTS.keys()), key="agent_select")
+        selected_agent_name = st.selectbox("Agent", list(AGENTS.keys()), key="agent_select", label_visibility="collapsed")
         agent = AGENTS[selected_agent_name]
-        st.info(f"{agent['emoji']} **Active:** {selected_agent_name}")
         
-        if st.button("Start New Conversation", type="primary"):
+        st.markdown(f"""
+        <div class="agent-panel">
+            <div style="font-size: 4rem; margin-bottom: 12px;">{agent['emoji']}</div>
+            <div class="agent-title">{selected_agent_name}</div>
+            <p style="color:#b0b8ff; margin-top: 12px; font-size: 0.95rem;">{agent['system']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🗑️ Start New Conversation", type="primary", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
 
-    with col2:
+    with col_right:
         st.subheader("Chat with Agent")
         
-        # Display chat history
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
-
-        # Chat input
+        chat_container = st.container()
+        with chat_container:
+            for msg in st.session_state.chat_history:
+                if msg["role"] == "user":
+                    st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+        
         if prompt := st.chat_input("Describe the job or what you need help with..."):
             st.session_state.chat_history.append({"role": "user", "content": prompt})
             
-            with st.spinner(f"Thinking with {selected_agent_name}..."):
+            with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
                 context = {
                     "current_jobs": st.session_state.jobs.to_dict(orient="records"),
                     "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
@@ -274,12 +324,10 @@ with tab2:
                     {"role": "user", "content": full_prompt}
                 ]
                 
-                response = call_nvidia_llm(messages, temperature=st.session_state.temperature)
+                response = call_nvidia_llm(messages)
                 st.session_state.chat_history.append({"role": "assistant", "content": response})
             
             st.rerun()
-
-    st.caption("Multi-agent system powered by NVIDIA NIM • Select different specialists above")
 
 # ==================== TAB 3: PROFILE ====================
 with tab3:
