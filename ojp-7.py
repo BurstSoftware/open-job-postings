@@ -44,14 +44,16 @@ st.markdown("""
 
 .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
 .company { color: #8f9eff; font-weight: 600; }
+
 .badge { 
     display: inline-block; 
     background: #3a4a8c; 
     color: #c0d0ff; 
-    padding: 4px 12px; 
+    padding: 6px 14px; 
     border-radius: 30px; 
-    font-size: 0.8rem; 
-    margin-right: 8px; 
+    font-size: 0.85rem; 
+    margin-right: 10px;   /* Increased spacing between badges */
+    margin-bottom: 8px;   /* Better vertical spacing */
 }
 
 .header-title { 
@@ -238,14 +240,18 @@ else:
                     <div style="color:#8899cc;">{job['location']}</div>
                 </div>
             </div>
-            <div style="margin:18px 0 16px 0;">
+            
+            <!-- Badges with better spacing -->
+            <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
                 <span class="badge">{job['type']}</span>
                 <span class="badge">Posted {job['posted']}</span>
                 <span class="badge">Match: {job.get('match', 85)}%</span>
             </div>
+            
             <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Description:</strong> {job.get('description','')}</div>
             <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Requirements:</strong> {job.get('requirements','')}</div>
             <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','')}</div>
+            
             <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
                 <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply</a></div>
                 <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
