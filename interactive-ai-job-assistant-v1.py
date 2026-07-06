@@ -118,7 +118,7 @@ with st.sidebar:
     st.caption("Inspired by ai-job-search project • Built for Denmark + Global")
 
 # ====================== MAIN UI ======================
-st.title("🚀 AI JobForge")
+st.title("🚀 Interactive AI Job Assistant")
 st.markdown("**Your AI-powered job search co-pilot** — Tailored CVs, smart applications, interview dominance.")
 
 tab1, tab2, tab3, tab4 = st.tabs(["🤖 Agent Studio", "📋 Applications", "📊 Tracker", "🛠️ Profile"])
