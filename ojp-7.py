@@ -1,13 +1,23 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 import uuid
 import re
 import io
-from datetime import datetime
+import json
+
+# Try to import OpenAI
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    st.error("❌ `openai` package is not installed. Run: `pip install openai`")
+    st.stop()
 
 # ====================== CONFIG ======================
 st.set_page_config(
-    page_title="Open Job Postings",
+    page_title="Open Job Postings • AI Powered",
     page_icon="■",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -16,123 +26,143 @@ st.set_page_config(
 # ====================== CUSTOM CSS ======================
 st.markdown("""
 <style>
-.main {
-    background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
-    color: #e0e0ff;
-}
-.job-card {
-    background: linear-gradient(145deg, #16213e, #1e2a5c);
-    border-radius: 20px;
-    padding: 24px;
-    margin: 16px 0;
-    border: 1px solid #4a5d9e;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-.job-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(74, 93, 158, 0.4);
-    border-color: #6e8cff;
-}
-.job-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #a0c4ff;
-    margin-bottom: 8px;
-}
-.company {
-    color: #8f9eff;
-    font-weight: 600;
-}
-.badge {
-    display: inline-block;
-    background: #3a4a8c;
-    color: #c0d0ff;
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    margin-right: 8px;
-}
-.info-label {
-    font-weight: 600;
-    color: #8899cc;
-    margin-top: 16px;
-    margin-bottom: 6px;
-    font-size: 0.95rem;
-}
-.stButton>button, .stLinkButton>button {
-    border-radius: 50px;
-    height: 48px;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-.stButton>button:hover, .stLinkButton>button:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 25px rgba(110, 140, 255, 0.4);
-}
-.header-title {
-    font-size: 2.8rem;
-    background: linear-gradient(90deg, #a0c4ff, #c0d0ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-}
+.main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
+.job-card { background: linear-gradient(145deg, #16213e, #1e2a5c); border-radius: 20px; padding: 24px; margin: 16px 0; 
+            border: 1px solid #4a5d9e; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.job-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(74,93,158,0.4); border-color: #6e8cff; }
+.job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
+.company { color: #8f9eff; font-weight: 600; }
+.badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 4px 12px; border-radius: 30px; 
+         font-size: 0.8rem; margin-right: 8px; }
+.info-label { font-weight: 600; color: #8899cc; margin-top: 16px; margin-bottom: 6px; font-size: 0.95rem; }
+.header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+.chat-message { padding: 12px 16px; border-radius: 12px; margin: 8px 0; }
+.user-msg { background: #2a3b6e; margin-left: 20%; }
+.ai-msg { background: #1e2a5c; margin-right: 20%; }
 </style>
 """, unsafe_allow_html=True)
 
-# ====================== LOAD INITIAL JOBS ======================
-csv_data = """Timestamp,Business Name,Job Title,City,State,Zip Code,Job Type,Hourly Rate,Monthly Rate,Website,Phone,Job Description,Requirements,Benefits
-2026-07-04 20:06:12,ABC Test Company 1,DemoJob.Job1,Minneapolis,MN,55401,Full Time,75.0,,abc.com,555-123-4567,test,test,test"""
+# ====================== SIDEBAR - NVIDIA API KEY ======================
+with st.sidebar:
+    st.markdown("# ■ **Open Job Postings**")
+    st.caption("Modern jobs. Zero spam. AI Powered.")
+    st.divider()
 
-df_raw = pd.read_csv(io.StringIO(csv_data))
-
-jobs_list = []
-for _, row in df_raw.iterrows():
-    location = f"{row['City']}, {row['State']} {row['Zip Code']}"
-    salary = f"${float(row['Hourly Rate']):.0f}/hr" if pd.notna(row['Hourly Rate']) else "Salary not listed"
+    st.subheader("🔑 NVIDIA NIM Settings")
     
-    jobs_list.append({
+    # Improved API Key Input
+    api_key = st.text_input(
+        "NVIDIA API Key (nvapi-...)", 
+        type="password",
+        value=st.session_state.get("nvidia_api_key", ""),
+        help="Paste your key from https://build.nvidia.com/. It will be saved for this session."
+    )
+    
+    if api_key and api_key != st.session_state.get("nvidia_api_key"):
+        st.session_state.nvidia_api_key = api_key
+        st.success("✅ API Key saved!", icon="🔑")
+        st.rerun()
+
+    model_options = [
+        "meta/llama-3.1-70b-instruct",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "meta/llama-3.1-8b-instruct",
+        "mistralai/mistral-nemo"
+    ]
+    selected_model = st.selectbox("Select Model", model_options, index=0)
+    st.session_state.selected_model = selected_model
+
+    st.divider()
+    if st.button("Clear All Data (Dev)", use_container_width=True):
+        st.session_state.jobs = pd.DataFrame(jobs_list)
+        st.session_state.applications = []
+        st.session_state.chat_history = []
+        st.rerun()
+    
+    st.info("Prototype with NVIDIA NIM", icon="ℹ️")
+
+# ====================== INITIAL JOBS DATA ======================
+if "jobs" not in st.session_state:
+    jobs_list = [{
         "id": str(uuid.uuid4()),
         "title": "Amazon Flex - X",
         "company": "Amazon",
         "location": "North Mankato, MN 56003",
         "salary": "$19/hr",
-        "posted": row['Timestamp'].split()[0],
+        "posted": "2026-07-04",
         "type": "Part Time >19 hours a week",
         "match": 92,
         "website": "http://amazon.com/getpaid",
-        "phone": row.get('Phone', 'N/A'),
+        "phone": "555-123-4567",
         "description": "picking, packing, stowing, water spider",
-        "requirements": "lifting up to 49lbs, twisting, bending, stooping, picking, packing",
-        "benefits": "Benefits available through the A to Z app",
+        "requirements": "lifting up to 49lbs, twisting, bending, stooping",
+        "benefits": "benefits available through the A to Z app",
         "referrer": "narossoh"
-    })
-
-if "jobs" not in st.session_state:
+    }]
     st.session_state.jobs = pd.DataFrame(jobs_list)
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 if "applications" not in st.session_state:
     st.session_state.applications = []
 
-# ====================== SIDEBAR ======================
-with st.sidebar:
-    st.markdown("# ■ **Open Job Postings**")
-    st.caption("Modern jobs. Zero spam.")
-    st.divider()
-    
-    if st.button("Clear All Data (Dev)", use_container_width=True):
-        st.session_state.jobs = pd.DataFrame(jobs_list)
-        st.session_state.applications = []
-        st.rerun()
-    
-    st.markdown("---")
-    st.info("Prototype • Built with ❤️ for better hiring", icon="ℹ️")
+# ====================== HELPER FUNCTIONS ======================
+def get_nvidia_client():
+    if not st.session_state.get("nvidia_api_key"):
+        st.warning("⚠️ Please enter your NVIDIA API Key in the sidebar.")
+        return None
+    return OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=st.session_state.nvidia_api_key
+    )
 
-# ====================== MAIN APP ======================
+def call_nvidia_llm(prompt, temperature=0.7, max_tokens=1024):
+    client = get_nvidia_client()
+    if not client:
+        return "❌ Please provide a valid NVIDIA API key in the sidebar."
+    try:
+        response = client.chat.completions.create(
+            model=st.session_state.get("selected_model", "meta/llama-3.1-70b-instruct"),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"❌ NVIDIA API Error: {str(e)}"
+
+# ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
-st.markdown("**Quality over quantity.** Transparent. Modern. Actually good.")
 
-# ====================== FILTERS ======================
+# AI Job Finder
+st.markdown("### 🚀 AI Job Finder (Powered by NVIDIA NIM)")
+col1, col2 = st.columns([3, 1])
+with col1:
+    query = st.text_input("Find jobs like...", "warehouse jobs at WMN7 in North Mankato, MN")
+with col2:
+    if st.button("🔍 Find Jobs", type="primary", use_container_width=True):
+        if query:
+            with st.spinner("Querying NVIDIA LLM..."):
+                prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
+                Each object must have: title, company, location, salary, type, description, requirements, benefits."""
+                result = call_nvidia_llm(prompt, temperature=0.6)
+                try:
+                    new_jobs = json.loads(result)
+                    if isinstance(new_jobs, list):
+                        new_df = pd.DataFrame(new_jobs)
+                        for col in ["id","posted","match","website","phone","referrer"]:
+                            if col not in new_df.columns: 
+                                new_df[col] = [""] * len(new_df)
+                        st.session_state.jobs = pd.concat([st.session_state.jobs, new_df], ignore_index=True)
+                        st.success(f"Added {len(new_df)} new jobs!")
+                        st.rerun()
+                except:
+                    st.info("LLM Response (raw):")
+                    st.code(result)
+
+# Filters + Job Cards (Full original functionality restored)
 st.markdown("### ■ Discover Your Next Role")
 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
@@ -145,19 +175,14 @@ with col3:
 with col4:
     min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
 
-# ====================== APPLY FILTERS ======================
+# Filtering
 df = st.session_state.jobs.copy()
-
 if search:
-    df = df[
-        df['title'].str.contains(search, case=False, na=False) | 
-        df['company'].str.contains(search, case=False, na=False) |
-        df['description'].str.contains(search, case=False, na=False)
-    ]
-
+    df = df[df['title'].str.contains(search, case=False, na=False) | 
+            df['company'].str.contains(search, case=False, na=False) |
+            df['description'].str.contains(search, case=False, na=False)]
 if location_filter != "All Locations":
     df = df[df['location'].str.contains(location_filter, case=False, na=False)]
-
 if job_type != "All Types":
     df = df[df['type'] == job_type]
 
@@ -169,7 +194,7 @@ df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
 st.caption(f"Showing **{len(df)}** high-quality opportunities")
 
-# ====================== JOB CARDS ======================
+# Job Cards
 if df.empty:
     st.warning("No jobs match your filters.")
 else:
@@ -186,47 +211,44 @@ else:
                     <div style="color:#8899cc;">{job['location']}</div>
                 </div>
             </div>
-
             <div style="margin:18px 0 16px 0;">
                 <span class="badge">{job['type']}</span>
                 <span class="badge">Posted {job['posted']}</span>
-                <span class="badge">Match: {job['match']}%</span>
+                <span class="badge">Match: {job.get('match', 85)}%</span>
             </div>
-
             <div class="info-label">Description</div>
-            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job['description']}</div>
-
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job.get('description','')}</div>
             <div class="info-label">Requirements</div>
-            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job['requirements']}</div>
-
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;">{job.get('requirements','')}</div>
             <div class="info-label">Benefits</div>
-            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;">{job['benefits']}</div>
-
+            <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;">{job.get('benefits','')}</div>
             <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                <div><strong>Website:</strong> <a href="{job['website']}" target="_blank" style="color:#6e8cff;">{job['website']}</a></div>
-                <div><strong>Phone:</strong> {job['phone']}</div>
-            </div>
-
-            <div style="margin-top:16px; padding-top:12px; border-top:1px solid #334477; font-size:0.9rem; color:#8899cc;">
-                <strong>Referred By:</strong> {job['referrer']}
+                <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply</a></div>
+                <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
             </div>
         </div>
         """)
-
-        # Apply Button
-        col_a, col_b = st.columns([1, 4])
+        col_a, _ = st.columns([1, 4])
         with col_a:
-            st.link_button(
-                label="🚀 Apply Now",
-                url=job["website"],
-                use_container_width=True
-            )
+            st.link_button("🚀 Apply Now", url=job.get("website", "#"), use_container_width=True)
 
-# ====================== FOOTER ======================
+# Chat Section
 st.markdown("---")
-st.markdown(
-    "<p style='text-align:center; color:#6677aa; font-size:0.9rem;'>"
-    "Open Job Postings • Modern job platform prototype"
-    "</p>",
-    unsafe_allow_html=True
-)
+st.subheader("💬 Chat with AI Job Assistant")
+for msg in st.session_state.chat_history:
+    if msg["role"] == "user":
+        st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="chat-message ai-msg"><strong>AI:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+
+if prompt := st.chat_input("Ask anything about jobs..."):
+    st.session_state.chat_history.append({"role": "user", "content": prompt})
+    with st.spinner("Thinking with NVIDIA NIM..."):
+        context = str(st.session_state.jobs.head(5).to_dict(orient="records"))
+        full_prompt = f"Context: {context}\n\nUser Question: {prompt}\nAnswer helpfully."
+        response = call_nvidia_llm(full_prompt)
+    st.session_state.chat_history.append({"role": "assistant", "content": response})
+    st.rerun()
+
+st.markdown("---")
+st.caption("Open Job Postings • NVIDIA NIM Integration")
