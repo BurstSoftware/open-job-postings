@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime
 import uuid
 import re
-import json
 
 # Try to import OpenAI
 try:
@@ -32,7 +31,6 @@ st.markdown("""
     .company { color: #8f9eff; font-weight: 600; }
     .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
     .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
-    /* Simplified Chat Styling */
     .chat-message { padding: 14px 18px; border-radius: 18px; margin: 10px 0; max-width: 85%; }
     .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; }
     .ai-msg { background: #16213e; color: #e0e0ff; margin-right: auto; border: 1px solid #334477; }
@@ -50,8 +48,10 @@ with st.sidebar:
         st.session_state.nvidia_api_key = api_key
         st.success("✅ API Key saved!", icon="🔑")
         st.rerun()
+
     model_options = ["meta/llama-3.1-70b-instruct"]
     st.session_state.selected_model = st.selectbox("Select Model", model_options, index=0)
+
     st.divider()
     if st.button("🗑️ Clear All Data", use_container_width=True):
         for key in ["jobs", "chat_history", "profile"]:
@@ -84,12 +84,8 @@ if "jobs" not in st.session_state:
 
 if "profile" not in st.session_state:
     profile = {
-        "name": "",
-        "location": "",
-        "experience": "",
-        "skills": "",
-        "education": "",
-        "certifications": ""
+        "name": "", "location": "", "experience": "", "skills": "",
+        "education": "", "certifications": ""
     }
     st.session_state.profile = pd.DataFrame([profile])
 
@@ -100,6 +96,7 @@ if "chat_history" not in st.session_state:
 def get_nvidia_client():
     if not st.session_state.get("nvidia_api_key"):
         st.warning("⚠️ Please enter your NVIDIA API Key in the sidebar.")
+        return None
     return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=st.session_state.nvidia_api_key)
 
 def call_nvidia_llm(prompt, temperature=0.7, max_tokens=1024):
@@ -124,7 +121,6 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-# Tabs - Only Discover Jobs + AI Job Assistant
 tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant", "📝 Profile"])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
@@ -139,14 +135,19 @@ with tab1:
         job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
     with col4:
         min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
+
     df = st.session_state.jobs.copy()
+
     if search:
-        df = df[df['title'].str.contains(search, case=False, na=False) | df['company'].str.contains(search, case=False, na=False) | df['description'].str.contains(search, case=False, na=False)]
+        df = df[df['title'].str.contains(search, case=False, na=False) |
+                df['company'].str.contains(search, case=False, na=False) |
+                df['description'].str.contains(search, case=False, na=False)]
     if location_filter != "All Locations":
         df = df[df['location'].str.contains(location_filter, case=False, na=False)]
     if job_type != "All Types":
         df = df[df['type'] == job_type]
     df = df[df['salary'].apply(extract_min_salary) >= min_salary]
+
     st.caption(f"Showing **{len(df)}** opportunities")
     if df.empty:
         st.warning("No jobs match your filters.")
@@ -187,39 +188,63 @@ with tab2:
             st.markdown(f'<div class="chat-message user-msg"><strong>You:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(f'<div class="chat-message ai-msg"><strong>AI:</strong> {msg["content"]}</div>', unsafe_allow_html=True)
+
     if prompt := st.chat_input("Ask anything about jobs in your area..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.spinner("Thinking with NVIDIA NIM..."):
             context = str(st.session_state.jobs.head(8).to_dict(orient="records"))
             full_prompt = f"""
-            You are a helpful career coach for North Mankato, MN. Context (current jobs): {context}
+            You are a helpful career coach for North Mankato, MN. 
+            Context (current jobs): {context}
             User question: {prompt}
             Answer in a friendly and useful way.
             """
             response = call_nvidia_llm(full_prompt, temperature=0.75)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.rerun()
+
     st.caption("Open Job Postings • NVIDIA NIM Integration")
 
 # ==================== TAB 3: Profile ====================
 with tab3:
     st.markdown("### 📝 Profile")
-    profile_form = st.form("profile_form")
-    profile_form.subheader("Update Your Profile")
-    name = profile_form.text_input("Name", value=st.session_state.profile['name'].iloc[0])
-    location = profile_form.text_input("Location", value=st.session_state.profile['location'].iloc[0])
-    experience = profile_form.text_area("Experience", value=st.session_state.profile['experience'].iloc[0])
-    skills = profile_form.text_area("Skills", value=st.session_state.profile['skills'].iloc[0])
-    education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0])
-    certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0])
-    submit_button = profile_form.form_submit_button("Save Profile")
-    if submit_button:
-        st.session_state.profile['name'] = name
-        st.session_state.profile['location'] = location
-        st.session_state.profile['experience'] = experience
-        st.session_state.profile['skills'] = skills
-        st.session_state.profile['education'] = education
-        st.session_state.profile['certifications'] = certifications
-        st.success("Profile saved!")
-    st.download_button("Download Profile", data=st.session_state.profile.to_csv(index=False), file_name="profile.csv")
-    st.file_uploader("Upload Profile", type=["csv"], on_change=lambda file: st.session_state.profile=pd.read_csv(file))
+
+    # Form
+    with st.form("profile_form"):
+        st.subheader("Update Your Profile")
+        name = st.text_input("Name", value=st.session_state.profile['name'].iloc[0])
+        location = st.text_input("Location", value=st.session_state.profile['location'].iloc[0])
+        experience = st.text_area("Experience", value=st.session_state.profile['experience'].iloc[0])
+        skills = st.text_area("Skills", value=st.session_state.profile['skills'].iloc[0])
+        education = st.text_area("Education", value=st.session_state.profile['education'].iloc[0])
+        certifications = st.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0])
+
+        submitted = st.form_submit_button("Save Profile")
+        if submitted:
+            st.session_state.profile['name'] = name
+            st.session_state.profile['location'] = location
+            st.session_state.profile['experience'] = experience
+            st.session_state.profile['skills'] = skills
+            st.session_state.profile['education'] = education
+            st.session_state.profile['certifications'] = certifications
+            st.success("Profile saved!")
+
+    # Download & Upload outside the form
+    col_dl, col_ul = st.columns(2)
+    with col_dl:
+        st.download_button(
+            "📥 Download Profile",
+            data=st.session_state.profile.to_csv(index=False),
+            file_name="profile.csv",
+            mime="text/csv"
+        )
+
+    with col_ul:
+        uploaded_file = st.file_uploader("📤 Upload Profile", type=["csv"])
+        if uploaded_file is not None:
+            try:
+                st.session_state.profile = pd.read_csv(uploaded_file)
+                st.success("✅ Profile uploaded successfully!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Upload failed: {e}")
