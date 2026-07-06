@@ -52,8 +52,8 @@ st.markdown("""
     padding: 6px 14px; 
     border-radius: 30px; 
     font-size: 0.85rem; 
-    margin-right: 10px;   /* Increased spacing between badges */
-    margin-bottom: 8px;   /* Better vertical spacing */
+    margin-right: 10px; 
+    margin-bottom: 8px; 
 }
 
 .header-title { 
@@ -241,7 +241,7 @@ else:
                 </div>
             </div>
             
-            <!-- Badges with better spacing -->
+            <!-- Badges with improved spacing -->
             <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
                 <span class="badge">{job['type']}</span>
                 <span class="badge">Posted {job['posted']}</span>
@@ -253,12 +253,11 @@ else:
             <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','')}</div>
             
             <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply</a></div>
+                <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
                 <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
             </div>
         </div>
         """)
-        st.link_button("🚀 Apply Now", url=job.get("website", "#"), use_container_width=True)
 
 # ====================== SIMPLIFIED AI CHAT ======================
 st.markdown("---")
