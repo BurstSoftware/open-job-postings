@@ -5,7 +5,7 @@ from openai import OpenAI
 import pandas as pd
 
 st.set_page_config(
-    page_title="🚀 AI JobForge",
+    page_title="🚀 Interactive AI Job Assistant",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
