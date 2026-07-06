@@ -64,7 +64,7 @@ st.markdown("""
     font-weight: 800; 
 }
 
-/* Chat Styling */
+/* Simplified Chat Styling */
 .chat-message { 
     padding: 14px 18px; 
     border-radius: 18px; 
@@ -173,56 +173,22 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-# ====================== TABBED VIEWS ======================
-tab1, tab2, tab3 = st.tabs(["🚀 AI Job Finder", "🔍 Discover Jobs", "💬 AI Job Assistant"])
+# Tabs - Discover Jobs is the default (first) tab
+tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "🚀 AI Job Finder", "💬 AI Job Assistant"])
 
-# ==================== TAB 1: AI JOB FINDER ====================
+# ==================== TAB 1: DISCOVER JOBS (Default) ====================
 with tab1:
-    st.markdown("### 🚀 AI Job Finder (Powered by NVIDIA NIM)")
-    st.write("Describe the kind of job you're looking for and let AI generate new listings.")
-    
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        query = st.text_input("Find jobs like...", 
-                             "warehouse jobs at WMN7 in North Mankato, MN", 
-                             key="ai_query")
-    with col2:
-        if st.button("🔍 Generate Jobs", type="primary", use_container_width=True):
-            if query:
-                with st.spinner("Querying NVIDIA LLM..."):
-                    prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
-                    Each object must have: title, company, location, salary, type, description, requirements, benefits."""
-                    result = call_nvidia_llm(prompt, temperature=0.6)
-                    try:
-                        new_jobs = json.loads(result)
-                        if isinstance(new_jobs, list):
-                            new_df = pd.DataFrame(new_jobs)
-                            for col in ["id","posted","match","website","phone","referrer"]:
-                                if col not in new_df.columns: 
-                                    new_df[col] = [""] * len(new_df)
-                            st.session_state.jobs = pd.concat([st.session_state.jobs, new_df], ignore_index=True)
-                            st.success(f"Added {len(new_df)} new jobs!")
-                            st.rerun()
-                    except:
-                        st.info("LLM Response (raw):")
-                        st.code(result)
-
-# ==================== TAB 2: DISCOVER JOBS ====================
-with tab2:
     st.markdown("### ■ Discover Your Next Role")
-    
     col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
     with col1:
-        search = st.text_input("■ Search titles, skills, companies...", 
-                              placeholder="Amazon Flex, warehouse", key="search")
+        search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
     with col2:
-        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"], key="location")
+        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
     with col3:
-        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"], key="type")
+        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
     with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15, key="salary")
+        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
 
-    # Filtering
     df = st.session_state.jobs.copy()
     if search:
         df = df[df['title'].str.contains(search, case=False, na=False) | 
@@ -264,16 +230,42 @@ with tab2:
                 <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','')}</div>
                 
                 <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply</a></div>
+                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
                     <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
                 </div>
             </div>
             """)
 
-# ==================== TAB 3: AI JOB ASSISTANT ====================
+# ==================== TAB 2: AI Job Finder ====================
+with tab2:
+    st.markdown("### 🚀 AI Job Finder")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        query = st.text_input("Find jobs like...", "warehouse jobs at WMN7 in North Mankato, MN")
+    with col2:
+        if st.button("🔍 Find Jobs", type="primary", use_container_width=True):
+            if query:
+                with st.spinner("Querying NVIDIA LLM..."):
+                    prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
+                    Each object must have: title, company, location, salary, type, description, requirements, benefits."""
+                    result = call_nvidia_llm(prompt, temperature=0.6)
+                    try:
+                        new_jobs = json.loads(result)
+                        if isinstance(new_jobs, list):
+                            new_df = pd.DataFrame(new_jobs)
+                            for col in ["id","posted","match","website","phone","referrer"]:
+                                if col not in new_df.columns: 
+                                    new_df[col] = [""] * len(new_df)
+                            st.session_state.jobs = pd.concat([st.session_state.jobs, new_df], ignore_index=True)
+                            st.success(f"Added {len(new_df)} new jobs!")
+                            st.rerun()
+                    except:
+                        st.info("LLM Response (raw):")
+                        st.code(result)
+
+# ==================== TAB 3: AI Job Assistant ====================
 with tab3:
     st.markdown("### 💬 AI Job Assistant")
-    st.caption("Ask anything about jobs, applications, or career advice in North Mankato")
 
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
