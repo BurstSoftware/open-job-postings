@@ -78,6 +78,15 @@ st.markdown("""
     }
     .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; border-bottom-right-radius: 6px; }
     .ai-msg { background: linear-gradient(145deg, #1e2a5c, #16213e); color: #e0e0ff; margin-right: auto; border: 1px solid #445588; border-bottom-left-radius: 6px; }
+
+    /* Guide Styling */
+    .guide-step {
+        background: linear-gradient(145deg, #16213e, #1e2a5c);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 16px 0;
+        border-left: 5px solid #6e8cff;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -201,7 +210,12 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant", "📝 Profile"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🔍 Discover Jobs", 
+    "💬 AI Job Assistant", 
+    "📝 Profile",
+    "🔑 NVIDIA API Guide"
+])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
 with tab1:
@@ -349,5 +363,42 @@ with tab3:
         st.success("Profile saved!")
     
     st.download_button("Download Profile", data=st.session_state.profile.to_csv(index=False), file_name="profile.csv")
+
+# ==================== TAB 4: NVIDIA API GUIDE ====================
+with tab4:
+    st.markdown("### 🔑 How to Create Your NVIDIA API Key")
+    st.markdown("Follow these steps to get your **free** NVIDIA NIM API key:")
+
+    st.markdown("""
+    <div class="guide-step">
+        <h4>1. Create / Sign In</h4>
+        <p>Go to <a href="https://build.nvidia.com/" target="_blank">build.nvidia.com</a> or <a href="https://ngc.nvidia.com/" target="_blank">ngc.nvidia.com</a> and sign in with your NVIDIA account (or create one).</p>
+    </div>
+
+    <div class="guide-step">
+        <h4>2. Go to API Keys</h4>
+        <p>Click your profile icon → <strong>Settings</strong> → <strong>API Keys</strong><br>
+        Or visit <a href="https://org.ngc.nvidia.com/account/api-keys" target="_blank">org.ngc.nvidia.com/account/api-keys</a></p>
+    </div>
+
+    <div class="guide-step">
+        <h4>3. Generate Key</h4>
+        <p>Click <strong>Generate Personal Key</strong> (or <strong>Generate API Key</strong>).</p>
+    </div>
+
+    <div class="guide-step">
+        <h4>4. Configure</h4>
+        <p>Add a description, select <strong>NGC Catalog</strong> under Services, and set expiration (Never expires is fine for personal use).</p>
+    </div>
+
+    <div class="guide-step">
+        <h4>5. Copy Key</h4>
+        <p>Copy the key (it starts with <code>nvapi-...</code>). Then paste it in the sidebar on the left.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.success("✅ After pasting the key in the sidebar, you can immediately start using the AI assistants!")
+    st.info("💡 Tip: The key is stored only in your current browser session.")
 
 st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
