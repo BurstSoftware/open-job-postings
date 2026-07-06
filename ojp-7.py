@@ -105,10 +105,7 @@ with st.sidebar:
         st.rerun()
 
     model_options = [
-        "meta/llama-3.1-70b-instruct",
-        "nvidia/llama-3.1-nemotron-70b-instruct",
-        "meta/llama-3.1-8b-instruct",
-        "mistralai/mistral-nemo"
+        "meta/llama-3.1-70b-instruct"
     ]
     st.session_state.selected_model = st.selectbox("Select Model", model_options, index=0)
 
