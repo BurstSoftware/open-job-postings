@@ -139,7 +139,7 @@ if "applications" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# ====================== AGENTS (Job Researcher Removed) ======================
+# ====================== AGENTS ======================
 AGENTS = {
     "🎯 Job Match Analyst": {
         "emoji": "📊",
@@ -259,18 +259,24 @@ with tab1:
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
-    # Select Specialist
-    col_select, col_new = st.columns([3, 1])
+    # === Aligned Specialist Selector + New Conversation Button ===
+    col_select, col_new = st.columns([4, 1.2])
     with col_select:
-        selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()), key="agent_select")
+        selected_agent_name = st.selectbox(
+            "Select Specialist", 
+            list(AGENTS.keys()), 
+            key="agent_select",
+            label_visibility="visible"
+        )
     with col_new:
+        st.markdown("<br>", unsafe_allow_html=True)  # Vertical alignment fix
         if st.button("🗑️ New Conversation", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
     
     agent = AGENTS[selected_agent_name]
     
-    # === NEW: Agent Info Between Dropdown and Chat ===
+    # Agent Info Card
     st.markdown(f"""
     <div class="agent-info">
         <div class="agent-info-emoji">{agent['emoji']}</div>
