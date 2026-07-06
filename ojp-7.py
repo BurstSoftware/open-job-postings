@@ -47,22 +47,26 @@ st.markdown("""
     .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
     .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
-    /* Agent Panel */
-    .agent-panel {
+    /* Agent Info */
+    .agent-info {
         background: linear-gradient(145deg, #1e2a5c, #16213e); 
-        border-radius: 20px; 
-        padding: 28px; 
+        border-radius: 16px; 
+        padding: 18px 24px; 
         border: 1px solid #445588;
-        text-align: center;
-        margin-bottom: 25px;
+        margin: 15px 0 25px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
     }
-    .agent-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 12px; }
+    .agent-info-emoji { font-size: 2.2rem; }
+    .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
+    
     .chat-container {
         background: #0f1629;
         border-radius: 20px;
         padding: 24px;
         border: 1px solid #334477;
-        min-height: 580px;
+        min-height: 520px;
         overflow-y: auto;
     }
     .chat-message {
@@ -124,10 +128,7 @@ if "jobs" not in st.session_state:
     st.session_state.jobs = pd.DataFrame(jobs_list)
 
 if "profile" not in st.session_state:
-    st.session_state.profile = pd.DataFrame([{
-        "name": "", "location": "", "experience": "", 
-        "skills": "", "education": "", "certifications": ""
-    }])
+    st.session_state.profile = pd.DataFrame([{"name": "", "location": "", "experience": "", "skills": "", "education": "", "certifications": ""}])
 
 if "candidate_profile" not in st.session_state:
     st.session_state.candidate_profile = {}
@@ -138,7 +139,7 @@ if "applications" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# ====================== AGENTS ======================
+# ====================== AGENTS (Job Researcher Removed) ======================
 AGENTS = {
     "🎯 Job Match Analyst": {
         "emoji": "📊",
@@ -159,11 +160,6 @@ AGENTS = {
         "emoji": "🎤",
         "description": "Prepares you for interviews with STAR method answers and mock interview practice.",
         "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."
-    },
-    "🔍 Job Researcher": {
-        "emoji": "🔎",
-        "description": "Helps find and evaluate the best job opportunities based on your profile.",
-        "system": "You analyze available jobs and suggest best matches and hidden opportunities."
     },
     "📈 Salary & Negotiation": {
         "emoji": "💰",
@@ -207,18 +203,14 @@ st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html
 
 tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant", "📝 Profile"])
 
-# ==================== TAB 1: DISCOVER JOBS (Job Card Fully Included) ====================
+# ==================== TAB 1: DISCOVER JOBS ====================
 with tab1:
     st.markdown("### ■ Discover Your Next Role")
     col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-    with col1:
-        search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
-    with col2:
-        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
-    with col3:
-        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
-    with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
+    with col1: search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
+    with col2: location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
+    with col3: job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
+    with col4: min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
     
     df = st.session_state.jobs.copy()
     if search:
@@ -267,6 +259,7 @@ with tab1:
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
+    # Select Specialist
     col_select, col_new = st.columns([3, 1])
     with col_select:
         selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()), key="agent_select")
@@ -277,14 +270,18 @@ with tab2:
     
     agent = AGENTS[selected_agent_name]
     
+    # === NEW: Agent Info Between Dropdown and Chat ===
     st.markdown(f"""
-    <div class="agent-panel">
-        <div style="font-size: 3.8rem; margin-bottom: 12px;">{agent['emoji']}</div>
-        <div class="agent-title">{selected_agent_name}</div>
-        <p style="color:#b0b8ff; font-size: 1.05rem; max-width: 700px; margin: 16px auto;">{agent['description']}</p>
+    <div class="agent-info">
+        <div class="agent-info-emoji">{agent['emoji']}</div>
+        <div>
+            <div class="agent-title">{selected_agent_name}</div>
+            <p style="color:#b0b8ff; margin: 4px 0 0 0;">{agent['description']}</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
     
+    # Chat Section
     st.subheader("Chat with Agent")
     chat_container = st.container()
     with chat_container:
