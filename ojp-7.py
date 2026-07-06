@@ -22,7 +22,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS (Enhanced for Beauty) ======================
+# ====================== CUSTOM CSS ======================
 st.markdown("""
 <style>
     .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
@@ -44,39 +44,24 @@ st.markdown("""
     }
     .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
     .company { color: #8f9eff; font-weight: 600; }
-    .badge { 
-        display: inline-block; 
-        background: #3a4a8c; 
-        color: #c0d0ff; 
-        padding: 6px 14px; 
-        border-radius: 30px; 
-        font-size: 0.85rem; 
-        margin-right: 10px; 
-        margin-bottom: 8px; 
-    }
-    .header-title { 
-        font-size: 2.8rem; 
-        background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
-        -webkit-background-clip: text; 
-        -webkit-text-fill-color: transparent; 
-        font-weight: 800; 
-    }
+    .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
+    .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
-    /* Beautiful Agent & Chat UI */
+    /* Agent & Chat Styling */
     .agent-panel {
         background: linear-gradient(145deg, #1e2a5c, #16213e); 
         border-radius: 20px; 
         padding: 24px; 
         border: 1px solid #445588;
-        height: 100%;
         text-align: center;
+        margin-bottom: 25px;
     }
     .chat-container {
         background: #0f1629;
         border-radius: 20px;
         padding: 24px;
         border: 1px solid #334477;
-        min-height: 600px;
+        min-height: 580px;
         overflow-y: auto;
     }
     .chat-message {
@@ -99,7 +84,7 @@ st.markdown("""
         border: 1px solid #445588;
         border-bottom-left-radius: 6px;
     }
-    .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
+    .agent-title { font-size: 1.35rem; font-weight: 700; color: #a0c4ff; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -180,7 +165,7 @@ AGENTS = {
     "🚀 Upskill Advisor": {"emoji": "📚", "system": "You analyze skill gaps and create personalized learning plans."}
 }
 
-# ====================== HELPER FUNCTIONS ======================
+# ====================== HELPERS ======================
 def get_nvidia_client():
     if not st.session_state.get("nvidia_api_key"):
         st.warning("⚠️ Please enter your NVIDIA API Key in the sidebar.")
@@ -197,7 +182,6 @@ def call_nvidia_llm(messages, temperature=None):
             messages=messages,
             temperature=temperature or st.session_state.get("temperature", 0.7),
             max_tokens=2048,
-            stream=False
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -216,14 +200,10 @@ tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant", "📝
 with tab1:
     st.markdown("### ■ Discover Your Next Role")
     col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-    with col1:
-        search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
-    with col2:
-        location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
-    with col3:
-        job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
-    with col4:
-        min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
+    with col1: search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
+    with col2: location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
+    with col3: job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
+    with col4: min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
     
     df = st.session_state.jobs.copy()
     if search:
@@ -268,66 +248,67 @@ with tab1:
             </div>
             """)
 
-# ==================== TAB 2: BEAUTIFUL MULTI-AGENT STUDIO ====================
+# ==================== TAB 2: AI JOB ASSISTANT (Chat Below Selector) ====================
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
-    col_left, col_right = st.columns([1, 2.3])
-    
-    with col_left:
-        st.subheader("Select Specialist")
-        selected_agent_name = st.selectbox("Agent", list(AGENTS.keys()), key="agent_select", label_visibility="collapsed")
-        agent = AGENTS[selected_agent_name]
-        
-        st.markdown(f"""
-        <div class="agent-panel">
-            <div style="font-size: 4rem; margin-bottom: 12px;">{agent['emoji']}</div>
-            <div class="agent-title">{selected_agent_name}</div>
-            <p style="color:#b0b8ff; margin-top: 12px; font-size: 0.95rem;">{agent['system']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if st.button("🗑️ Start New Conversation", type="primary", use_container_width=True):
+    # === SELECT SPECIALIST (Top) ===
+    col_select, col_new = st.columns([3, 1])
+    with col_select:
+        selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()), key="agent_select")
+    with col_new:
+        if st.button("🗑️ New Conversation", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
-
-    with col_right:
-        st.subheader("Chat with Agent")
+    
+    agent = AGENTS[selected_agent_name]
+    
+    # Agent Info Panel
+    st.markdown(f"""
+    <div class="agent-panel">
+        <div style="font-size: 3.5rem; margin-bottom: 10px;">{agent['emoji']}</div>
+        <div class="agent-title">{selected_agent_name}</div>
+        <p style="color:#b0b8ff; margin-top: 12px;">{agent['system']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # === CHAT UI BELOW ===
+    st.subheader("Chat with Agent")
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_history:
+            if msg["role"] == "user":
+                st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+    
+    # Chat Input
+    if prompt := st.chat_input("Describe the job or what you need help with..."):
+        st.session_state.chat_history.append({"role": "user", "content": prompt})
         
-        chat_container = st.container()
-        with chat_container:
-            for msg in st.session_state.chat_history:
-                if msg["role"] == "user":
-                    st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+        with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
+            context = {
+                "current_jobs": st.session_state.jobs.to_dict(orient="records"),
+                "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
+                "candidate_extra": st.session_state.candidate_profile
+            }
+            
+            full_prompt = f"""
+            Context:
+            {json.dumps(context, indent=2)}
+            
+            User request: {prompt}
+            """
+            
+            messages = [
+                {"role": "system", "content": agent["system"]},
+                {"role": "user", "content": full_prompt}
+            ]
+            
+            response = call_nvidia_llm(messages)
+            st.session_state.chat_history.append({"role": "assistant", "content": response})
         
-        if prompt := st.chat_input("Describe the job or what you need help with..."):
-            st.session_state.chat_history.append({"role": "user", "content": prompt})
-            
-            with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
-                context = {
-                    "current_jobs": st.session_state.jobs.to_dict(orient="records"),
-                    "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
-                    "candidate_extra": st.session_state.candidate_profile
-                }
-                
-                full_prompt = f"""
-                Context:
-                {json.dumps(context, indent=2)}
-                
-                User request: {prompt}
-                """
-                
-                messages = [
-                    {"role": "system", "content": agent["system"]},
-                    {"role": "user", "content": full_prompt}
-                ]
-                
-                response = call_nvidia_llm(messages)
-                st.session_state.chat_history.append({"role": "assistant", "content": response})
-            
-            st.rerun()
+        st.rerun()
 
 # ==================== TAB 3: PROFILE ====================
 with tab3:
