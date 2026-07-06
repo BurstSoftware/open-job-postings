@@ -170,10 +170,10 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-# Tabs - Discover Jobs is the default (first) tab
-tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "🚀 AI Job Finder", "💬 AI Job Assistant"])
+# Tabs - Only Discover Jobs + AI Job Assistant
+tab1, tab2 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant"])
 
-# ==================== TAB 1: DISCOVER JOBS (Default) ====================
+# ==================== TAB 1: DISCOVER JOBS ====================
 with tab1:
     st.markdown("### ■ Discover Your Next Role")
     col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
@@ -233,35 +233,8 @@ with tab1:
             </div>
             """)
 
-# ==================== TAB 2: AI Job Finder ====================
+# ==================== TAB 2: AI Job Assistant ====================
 with tab2:
-    st.markdown("### 🚀 AI Job Finder")
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        query = st.text_input("Find jobs like...", "warehouse jobs at WMN7 in North Mankato, MN")
-    with col2:
-        if st.button("🔍 Find Jobs", type="primary", use_container_width=True):
-            if query:
-                with st.spinner("Querying NVIDIA LLM..."):
-                    prompt = f"""Return 3-5 plausible job postings as JSON array for this query: "{query}".
-                    Each object must have: title, company, location, salary, type, description, requirements, benefits."""
-                    result = call_nvidia_llm(prompt, temperature=0.6)
-                    try:
-                        new_jobs = json.loads(result)
-                        if isinstance(new_jobs, list):
-                            new_df = pd.DataFrame(new_jobs)
-                            for col in ["id","posted","match","website","phone","referrer"]:
-                                if col not in new_df.columns: 
-                                    new_df[col] = [""] * len(new_df)
-                            st.session_state.jobs = pd.concat([st.session_state.jobs, new_df], ignore_index=True)
-                            st.success(f"Added {len(new_df)} new jobs!")
-                            st.rerun()
-                    except:
-                        st.info("LLM Response (raw):")
-                        st.code(result)
-
-# ==================== TAB 3: AI Job Assistant ====================
-with tab3:
     st.markdown("### 💬 AI Job Assistant")
 
     for msg in st.session_state.chat_history:
