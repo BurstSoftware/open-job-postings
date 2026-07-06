@@ -134,8 +134,8 @@ if "jobs" not in st.session_state:
         "match": 92,
         "website": "http://amazon.com/getpaid",
         "phone": "N/a",
-        "description": "picking, packing, stowing, water spider",
-        "requirements": "lifting up to 49lbs, twisting, bending, stooping",
+        "description": "Picking, packing, sorting, stowing",
+        "requirements": "Lifting up to 49lbs, twisting, bending, stooping",
         "benefits": "Benefits available through the A to Z app",
         "referrer": "narossoh"
     }]
