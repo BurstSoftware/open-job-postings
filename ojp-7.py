@@ -131,10 +131,10 @@ if "jobs" not in st.session_state:
         "type": "Part Time >19 hours a week",
         "match": 92,
         "website": "http://amazon.com/getpaid",
-        "phone": "555-123-4567",
+        "phone": "N/a",
         "description": "picking, packing, stowing, water spider",
         "requirements": "lifting up to 49lbs, twisting, bending, stooping",
-        "benefits": "benefits available through the A to Z app",
+        "benefits": "Benefits available through the A to Z app",
         "referrer": "narossoh"
     }]
     st.session_state.jobs = pd.DataFrame(jobs_list)
