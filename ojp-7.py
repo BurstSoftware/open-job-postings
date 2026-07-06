@@ -104,7 +104,7 @@ for _, row in df_raw.iterrows():
         "phone": row.get('Phone', 'N/A'),
         "description": "picking, packing, stowing, water spider",
         "requirements": "lifting up to 49lbs, twisting, bending, stooping, picking, packing",
-        "benefits": "benefits available through the A to Z app",
+        "benefits": "Benefits available through the A to Z app",
         "referrer": "narossoh"
     })
 
