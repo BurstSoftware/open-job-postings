@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 st.title("💼 Open Job Postings")
-st.markdown("All jobs from the dataset displayed as cards")
+st.markdown("All jobs from the dataset displayed as detailed cards")
 
 # Load data
 @st.cache_data
@@ -31,19 +31,19 @@ def load_jobs_from_github():
         return df
     except Exception as e:
         st.error(f"Failed to load data: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(columns=["title", "company"])
 
 df = load_jobs_from_github()
 
 if df.empty:
     st.stop()
 
-# Sidebar filters (kept for usability)
+# Sidebar filters
 st.sidebar.header("🔍 Filters")
-search_term = st.sidebar.text_input("Search", placeholder="Title, company, description...")
-min_match = st.sidebar.slider("Minimum Match Score", 0, 100, 0)
+search_term = st.sidebar.text_input("Search jobs", placeholder="Title, company, keywords...")
+min_match = st.sidebar.slider("Minimum Match Score (%)", 0, 100, 0)
 
-# Apply simple filters
+# Apply filters
 filtered_df = df.copy()
 if search_term:
     mask = (
@@ -56,61 +56,66 @@ if search_term:
 filtered_df = filtered_df[filtered_df['match'] >= min_match]
 filtered_df = filtered_df.sort_values(by='match', ascending=False)
 
-st.sidebar.caption(f"Showing {len(filtered_df)} jobs")
+st.sidebar.caption(f"Showing {len(filtered_df)} of {len(df)} jobs")
 
-# Display as Job Cards
-st.header(f"Job Cards ({len(filtered_df)})")
+# Display Job Cards
+st.header(f"Featured Jobs ({len(filtered_df)})")
 
 if filtered_df.empty:
-    st.warning("No jobs found.")
+    st.info("No jobs match your current filters. Try lowering the match score or clearing the search.")
 else:
-    cols = st.columns(2)  # 2 cards per row for more space
-
+    # 2 columns layout
+    cols = st.columns(2)
+    
     for idx, job in filtered_df.iterrows():
-        with cols[idx % 2]:
+        col_idx = idx % 2
+        with cols[col_idx]:
             with st.container(border=True):
-                # Main Header
-                st.subheader(f"{job['title']}")
-                st.markdown(f"**{job['company']}** • {job.get('location', 'N/A')}")
+                # Header
+                st.subheader(job['title'])
+                st.markdown(f"**{job['company']}**  •  {job.get('location', 'N/A')}")
 
-                # Key info row
+                # Quick metrics
                 c1, c2, c3 = st.columns(3)
                 with c1:
                     st.metric("Match", f"{int(job['match'])}%")
                 with c2:
-                    if pd.notna(job['salary']) and str(job['salary']).strip():
-                        st.success(f"💰 {job['salary']}")
+                    salary = job.get('salary')
+                    if pd.notna(salary) and str(salary).strip():
+                        st.success(f"💰 {salary}")
                 with c3:
                     st.caption(job.get('type', 'N/A'))
 
-                # Full Description
+                # Description
                 st.markdown("**Description**")
-                st.write(job.get('description', 'No description provided.'))
+                st.write(job.get('description', 'No description available.'))
 
-                # All other fields in expanders
-                with st.expander("📋 Full Job Details", expanded=False):
-                    detail_cols = st.columns(2)
-                    with detail_cols[0]:
-                        st.markdown(f"**ID:** {job.get('id', 'N/A')}")
-                        st.markdown(f"**Posted:** {job['posted'].date() if pd.notna(job['posted']) else 'N/A'}")
-                        st.markdown(f"**Phone:** {job.get('phone', 'N/A')}")
-                        st.markdown(f"**Referrer:** {job.get('referrer', 'N/A')}")
+                # Full details
+                with st.expander("📋 All Job Details", expanded=False):
+                    dcol1, dcol2 = st.columns(2)
+                    with dcol1:
+                        st.write(f"**ID:** {job.get('id', 'N/A')}")
+                        posted = job['posted']
+                        st.write(f"**Posted:** {posted.date() if pd.notna(posted) else 'N/A'}")
+                        st.write(f"**Phone:** {job.get('phone', 'N/A')}")
+                        st.write(f"**Referrer:** {job.get('referrer', 'N/A')}")
                     
-                    with detail_cols[1]:
-                        st.markdown(f"**Requirements**")
+                    with dcol2:
+                        st.write("**Requirements**")
                         st.write(job.get('requirements', 'N/A'))
-                        st.markdown(f"**Benefits**")
+                        st.write("**Benefits**")
                         st.write(job.get('benefits', 'N/A'))
 
                 # Action buttons
-                btn1, btn2 = st.columns(2)
-                with btn1:
-                    if pd.notna(job.get('website')) and str(job['website']).strip():
-                        st.link_button("🌐 Apply on Website", job['website'], use_container_width=True)
+                b1, b2 = st.columns(2)
+                with b1:
+                    website = job.get('website')
+                    if pd.notna(website) and str(website).strip():
+                        st.link_button("🌐 Apply Now", website, use_container_width=True)
                     else:
-                        st.button("Apply", disabled=True, use_container_width=True)
-                with btn2:
-                    st.button("⭐ Save", key=f"save_{idx}", use_container_width=True)
+                        st.button("Apply Now", disabled=True, use_container_width=True)
+                with b2:
+                    st.button("⭐ Save Job", key=f"save_{idx}", use_container_width=True)
 
 st.divider()
-st.caption("Dataset: https://github.com/BurstSoftware/open-job-postings")
+st.caption("Data from: https://github.com/BurstSoftware/open-job-postings")
