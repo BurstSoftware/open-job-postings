@@ -18,7 +18,7 @@ def load_jobs_from_github():
     url = "https://raw.githubusercontent.com/BurstSoftware/open-job-postings/main/jobs.csv"
     try:
         df = pd.read_csv(url)
-        expected_cols = ["id", "title", "company", "location", "salary", "posted", 
+        expected_cols = ["title", "company", "location", "salary", "posted", 
                         "type", "match", "website", "phone", "description", 
                         "requirements", "benefits", "referrer"]
         
