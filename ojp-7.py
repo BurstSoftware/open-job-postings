@@ -1,10 +1,26 @@
+import streamlit as st
+import pandas as pd
+import uuid
+import re
+import json
+from datetime import datetime
+
+# Try to import OpenAI
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    st.error("❌ `openai` package is not installed. Run: `pip install openai`")
+    st.stop()
+
 # ====================== LOAD JOBS FROM GITHUB ======================
 @st.cache_data(ttl=300)
 def load_jobs_from_github():
     url = "https://raw.githubusercontent.com/BurstSoftware/open-job-postings/main/jobs.csv"
     try:
         df = pd.read_csv(url)
-        # Ensure all expected columns exist (with sensible defaults)
+        # Ensure required columns
         expected_cols = ["id", "title", "company", "location", "salary", "posted", 
                         "type", "match", "website", "phone", "description", 
                         "requirements", "benefits", "referrer"]
@@ -36,23 +52,6 @@ def load_jobs_from_github():
             "referrer": "narossoh"
         }])
 
-# ====================== IMPORTS ======================
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import uuid
-import re
-import json
-
-# Try to import OpenAI
-try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    st.error("❌ `openai` package is not installed. Run: `pip install openai`")
-    st.stop()
-
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="Open Job Postings • AI Powered",
@@ -65,8 +64,6 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
-    
-    /* Job Cards */
     .job-card { 
         background: linear-gradient(145deg, #16213e, #1e2a5c); 
         border-radius: 20px; 
@@ -86,7 +83,6 @@ st.markdown("""
     .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
     .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
-    /* Agent Info */
     .agent-info {
         background: linear-gradient(145deg, #1e2a5c, #16213e); 
         border-radius: 16px; 
@@ -100,14 +96,6 @@ st.markdown("""
     .agent-info-emoji { font-size: 2.2rem; }
     .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
     
-    .chat-container {
-        background: #0f1629;
-        border-radius: 20px;
-        padding: 24px;
-        border: 1px solid #334477;
-        min-height: 520px;
-        overflow-y: auto;
-    }
     .chat-message {
         padding: 16px 22px;
         border-radius: 20px;
@@ -118,7 +106,6 @@ st.markdown("""
     .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; border-bottom-right-radius: 6px; }
     .ai-msg { background: linear-gradient(145deg, #1e2a5c, #16213e); color: #e0e0ff; margin-right: auto; border: 1px solid #445588; border-bottom-left-radius: 6px; }
 
-    /* Guide Styling */
     .guide-step {
         background: linear-gradient(145deg, #16213e, #1e2a5c);
         border-radius: 16px;
@@ -203,7 +190,7 @@ AGENTS = {
     }
 }
 
-# ====================== HELPER FUNCTIONS ======================
+# ====================== HELPERS ======================
 def get_nvidia_client():
     if not st.session_state.get("nvidia_api_key"):
         st.warning("⚠️ Please enter your NVIDIA API Key in the sidebar.")
@@ -252,7 +239,6 @@ with tab1:
         min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
     
     df = st.session_state.jobs.copy()
-    
     if search:
         df = df[df['title'].str.contains(search, case=False, na=False) | 
                 df['company'].str.contains(search, case=False, na=False) | 
@@ -263,7 +249,7 @@ with tab1:
         df = df[df['type'] == job_type]
     df = df[df['salary'].apply(extract_min_salary) >= min_salary]
     
-    st.caption(f"Showing **{len(df)}** opportunities from GitHub dataset")
+    st.caption(f"Showing **{len(df)}** opportunities")
     if df.empty:
         st.warning("No jobs match your filters.")
     else:
@@ -301,12 +287,7 @@ with tab2:
     
     col_select, col_new = st.columns([4, 1.2])
     with col_select:
-        selected_agent_name = st.selectbox(
-            "Select Specialist", 
-            list(AGENTS.keys()), 
-            key="agent_select",
-            label_visibility="visible"
-        )
+        selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()), key="agent_select")
     with col_new:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑️ New Conversation", use_container_width=True):
@@ -325,13 +306,12 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
     
-    chat_container = st.container()
-    with chat_container:
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+    # Chat display
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
     
     if prompt := st.chat_input("Describe the job or what you need help with..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
@@ -373,15 +353,10 @@ with tab3:
     education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0] if not st.session_state.profile.empty else "")
     certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0] if not st.session_state.profile.empty else "")
     
-    submit_button = profile_form.form_submit_button("Save Profile")
-    if submit_button:
+    if profile_form.form_submit_button("Save Profile"):
         st.session_state.profile = pd.DataFrame([{
-            "name": name, 
-            "location": location, 
-            "experience": experience, 
-            "skills": skills, 
-            "education": education, 
-            "certifications": certifications
+            "name": name, "location": location, "experience": experience,
+            "skills": skills, "education": education, "certifications": certifications
         }])
         st.session_state.candidate_profile = {"name": name, "location": location}
         st.success("Profile saved!")
@@ -396,33 +371,22 @@ with tab4:
     st.markdown("""
     <div class="guide-step">
         <h4>1. Create / Sign In</h4>
-        <p>Go to <a href="https://build.nvidia.com/" target="_blank">build.nvidia.com</a> or <a href="https://ngc.nvidia.com/" target="_blank">ngc.nvidia.com</a> and sign in with your NVIDIA account (or create one).</p>
+        <p>Go to <a href="https://build.nvidia.com/" target="_blank">build.nvidia.com</a> and sign in (or create an account).</p>
     </div>
-
     <div class="guide-step">
         <h4>2. Go to API Keys</h4>
-        <p>Click your profile icon → <strong>Settings</strong> → <strong>API Keys</strong><br>
-        Or visit <a href="https://org.ngc.nvidia.com/account/api-keys" target="_blank">org.ngc.nvidia.com/account/api-keys</a></p>
+        <p>Click your profile → Settings → API Keys</p>
     </div>
-
     <div class="guide-step">
         <h4>3. Generate Key</h4>
-        <p>Click <strong>Generate Personal Key</strong> (or <strong>Generate API Key</strong>).</p>
+        <p>Click <strong>Generate Personal Key</strong></p>
     </div>
-
     <div class="guide-step">
-        <h4>4. Configure</h4>
-        <p>Add a description, select <strong>NGC Catalog</strong> under Services, and set expiration (Never expires is fine for personal use).</p>
-    </div>
-
-    <div class="guide-step">
-        <h4>5. Copy Key</h4>
-        <p>Copy the key (it starts with <code>nvapi-...</code>). Then paste it in the sidebar on the left.</p>
+        <h4>4. Copy & Paste</h4>
+        <p>Copy the key (starts with <code>nvapi-...</code>) and paste it in the sidebar.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.success("✅ After pasting the key in the sidebar, you can immediately start using the AI assistants!")
-    st.info("💡 Tip: The key is stored only in your current browser session.")
+    st.success("✅ After adding the key, you can use all AI agents immediately!")
 
-st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Jobs loaded from GitHub CSV")
+st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI • Jobs loaded from GitHub CSV")
