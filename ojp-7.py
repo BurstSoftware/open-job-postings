@@ -2,14 +2,56 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(
-    page_title="Job Board",
+    page_title="Open Job Postings",
     page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title("💼 Open Job Postings")
-st.markdown("All jobs from the dataset displayed as detailed cards")
+# ====================== CUSTOM CSS ======================
+st.markdown("""
+<style>
+    .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
+    
+    /* Beautiful Job Cards */
+    .job-card { 
+        background: linear-gradient(145deg, #16213e, #1e2a5c); 
+        border-radius: 20px; 
+        padding: 24px; 
+        margin: 16px 0; 
+        border: 1px solid #4a5d9e; 
+        transition: all 0.3s ease; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    }
+    .job-card:hover { 
+        transform: translateY(-8px); 
+        box-shadow: 0 20px 40px rgba(74,93,158,0.4); 
+        border-color: #6e8cff; 
+    }
+    .job-title { font-size: 1.45rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
+    .company { color: #8f9eff; font-weight: 600; font-size: 1.1rem; }
+    .badge { 
+        display: inline-block; 
+        background: #3a4a8c; 
+        color: #c0d0ff; 
+        padding: 6px 14px; 
+        border-radius: 30px; 
+        font-size: 0.85rem; 
+        margin-right: 10px; 
+        margin-bottom: 8px; 
+    }
+    .header-title { 
+        font-size: 2.8rem; 
+        background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
+        font-weight: 800; 
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
+st.markdown("Discover real opportunities from the community dataset")
 
 # Load data
 @st.cache_data
@@ -57,64 +99,55 @@ filtered_df = filtered_df.sort_values(by='match', ascending=False).reset_index(d
 
 st.sidebar.caption(f"Showing {len(filtered_df)} of {len(df)} jobs")
 
-# Display Job Cards
+# Display Beautiful Job Cards
 st.header(f"Featured Jobs ({len(filtered_df)})")
 
 if filtered_df.empty:
-    st.info("No jobs match your current filters. Try lowering the match score or clearing the search.")
+    st.info("No jobs match your filters. Try lowering the match score or clearing the search.")
 else:
-    # 2 columns layout
-    cols = st.columns(2)
-    
-    for i, job in filtered_df.iterrows():          # i is now always 0, 1, 2, ...
-        col_idx = i % 2
-        with cols[col_idx]:
-            with st.container(border=True):
-                # Header
-                st.subheader(job['title'])
-                st.markdown(f"**{job['company']}**  •  {job.get('location', 'N/A')}")
-
-                # Quick metrics
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    st.metric("Match", f"{int(job['match'])}%")
-                with c2:
-                    salary = job.get('salary')
-                    if pd.notna(salary) and str(salary).strip():
-                        st.success(f"💰 {salary}")
-                with c3:
-                    st.caption(job.get('type', 'N/A'))
-
-                # Description
-                st.markdown("**Description**")
-                st.write(job.get('description', 'No description available.'))
-
-                # Full details
-                with st.expander("📋 All Job Details", expanded=False):
-                    dcol1, dcol2 = st.columns(2)
-                    with dcol1:
-                        st.write(f"**ID:** {job.get('id', 'N/A')}")
-                        posted = job.get('posted')
-                        st.write(f"**Posted:** {posted.date() if pd.notna(posted) else 'N/A'}")
-                        st.write(f"**Phone:** {job.get('phone', 'N/A')}")
-                        st.write(f"**Referrer:** {job.get('referrer', 'N/A')}")
-                    
-                    with dcol2:
-                        st.write("**Requirements**")
-                        st.write(job.get('requirements', 'N/A'))
-                        st.write("**Benefits**")
-                        st.write(job.get('benefits', 'N/A'))
-
-                # Action buttons
-                b1, b2 = st.columns(2)
-                with b1:
-                    website = job.get('website')
-                    if pd.notna(website) and str(website).strip():
-                        st.link_button("🌐 Apply Now", website, use_container_width=True)
-                    else:
-                        st.button("Apply Now", disabled=True, use_container_width=True)
-                with b2:
-                    st.button("⭐ Save Job", key=f"save_{i}", use_container_width=True)
+    for i, job in filtered_df.iterrows():
+        st.html(f"""
+        <div class="job-card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                    <div class="job-title">{job.get('title', 'N/A')}</div>
+                    <div class="company">■ {job.get('company', 'N/A')}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.3rem; font-weight:700; color:#00ff9d;">
+                        {job.get('salary', 'N/A')}
+                    </div>
+                    <div style="color:#8899cc;">{job.get('location', 'N/A')}</div>
+                </div>
+            </div>
+            
+            <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
+                <span class="badge">{job.get('type', 'N/A')}</span>
+                <span class="badge">Match: {int(job.get('match', 0))}%</span>
+                <span class="badge">Posted: {job['posted'].date() if pd.notna(job.get('posted')) else 'N/A'}</span>
+            </div>
+            
+            <div style="color:#b0b8ff; line-height:1.6; margin-bottom:12px;">
+                <strong>Description:</strong> {job.get('description', 'No description provided.')}
+            </div>
+            
+            <div style="color:#b0b8ff; line-height:1.6; margin-bottom:12px;">
+                <strong>Requirements:</strong> {job.get('requirements', 'N/A')}
+            </div>
+            
+            <div style="color:#b0b8ff; line-height:1.6; margin-bottom:20px;">
+                <strong>Benefits:</strong> {job.get('benefits', 'N/A')}
+            </div>
+            
+            <div style="display:flex; gap:24px; font-size:0.95rem; color:#8899cc; border-top:1px solid #334477; padding-top:14px;">
+                <div><strong>Website:</strong> 
+                    <a href="{job.get('website', '#')}" target="_blank" style="color:#6e8cff;">Apply Now →</a>
+                </div>
+                <div><strong>Phone:</strong> {job.get('phone', 'N/A')}</div>
+                <div><strong>Referrer:</strong> {job.get('referrer', 'N/A')}</div>
+            </div>
+        </div>
+        """)
 
 st.divider()
-st.caption("Data from: https://github.com/BurstSoftware/open-job-postings")
+st.caption("Data sourced from BurstSoftware/open-job-postings on GitHub")
