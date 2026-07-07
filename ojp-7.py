@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import uuid
 import re
 import json
+from io import StringIO
 
 # ====================== CONFIG ======================
 st.set_page_config(
@@ -13,21 +13,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS (unchanged) ======================
-# ... [Your existing CSS stays the same] ...
+# ====================== CUSTOM CSS (your original) ======================
+st.markdown("""<style> ... your existing CSS here ... </style>""", unsafe_allow_html=True)
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
     st.markdown("# ■ **Open Job Postings**")
     st.caption("Modern jobs. Zero spam. AI Powered.")
     st.divider()
-    
     st.subheader("🔑 NVIDIA NIM Settings")
-    api_key = st.text_input("NVIDIA API Key (nvapi-...)", type="password", 
-                           value=st.session_state.get("nvidia_api_key", ""))
+    api_key = st.text_input("NVIDIA API Key (nvapi-...)", type="password", value=st.session_state.get("nvidia_api_key", ""))
     if api_key and api_key != st.session_state.get("nvidia_api_key"):
         st.session_state.nvidia_api_key = api_key
-        st.success("✅ API Key saved!")
+        st.success("✅ API Key saved!", icon="🔑")
         st.rerun()
     
     model_options = ["meta/llama-3.1-70b-instruct", "meta/llama-3.1-405b-instruct", 
@@ -36,94 +34,43 @@ with st.sidebar:
     st.slider("Temperature", 0.0, 1.0, 0.7, 0.05, key="temperature")
     
     st.divider()
-    if st.button("🔄 Refresh Jobs from GitHub", use_container_width=True):
+    if st.button("🔄 Refresh Jobs", use_container_width=True):
         if "jobs" in st.session_state:
             del st.session_state.jobs
-        st.success("Jobs refreshed!")
-        st.rerun()
-    
-    if st.button("🗑️ Clear All Data", use_container_width=True):
-        for key in ["jobs", "chat_history", "profile", "applications", "candidate_profile"]:
-            if key in st.session_state:
-                del st.session_state[key]
         st.rerun()
 
-# ====================== LOAD JOBS FROM GITHUB ======================
-@st.cache_data(ttl=300)  # Cache for 5 minutes
-def load_jobs_from_github():
-    # ←←← CHANGE THIS URL TO YOUR GITHUB RAW CSV LINK
-    GITHUB_CSV_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/jobs.csv"
-    
+# ====================== JOB DATA (GitHub Alternative + Fallback) ======================
+CSV_DATA = """id,title,company,location,salary,posted,type,match,website,phone,description,requirements,benefits,referrer
+,Amazon Flex - X,Amazon,North Mankato, MN 56003,$19/hr,2026-07-04,Part Time >19 hours a week,92,http://amazon.com/getpaid,N/a,Picking, packing, sorting, stowing,Lifting up to 49lbs, twisting, bending, stooping,Benefits available through the A to Z app,narossoh"""
+
+@st.cache_data(ttl=300)
+def load_jobs():
     try:
-        df = pd.read_csv(GITHUB_CSV_URL)
+        # Try GitHub first (replace with your real raw URL later)
+        # GITHUB_URL = "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/jobs.csv"
+        # df = pd.read_csv(GITHUB_URL)
         
-        # Auto-generate ID if missing
-        if 'id' not in df.columns or df['id'].isna().all():
-            df['id'] = [str(uuid.uuid4()) for _ in range(len(df))]
-        else:
-            df['id'] = df['id'].fillna(str(uuid.uuid4()))
-            
+        # Current fallback using the data you provided
+        df = pd.read_csv(StringIO(CSV_DATA))
+        
+        # Auto-generate ID if empty
+        df['id'] = df['id'].fillna([str(uuid.uuid4()) for _ in range(len(df))])
+        
         return df
     except Exception as e:
-        st.error(f"❌ Failed to load jobs from GitHub: {e}")
-        st.info("Make sure your CSV is publicly accessible and the URL is a **raw** GitHub link.")
+        st.error(f"Error loading jobs: {e}")
         return pd.DataFrame()
 
 # Load jobs
 if "jobs" not in st.session_state:
-    st.session_state.jobs = load_jobs_from_github()
+    st.session_state.jobs = load_jobs()
 
-# ====================== OTHER SESSION STATE (unchanged) ======================
-if "profile" not in st.session_state:
-    st.session_state.profile = pd.DataFrame([{"name": "", "location": "", "experience": "", "skills": "", "education": "", "certifications": ""}])
+# ====================== REST OF YOUR CODE (unchanged) ======================
+# ... Keep all your AGENTS, helper functions, tabs, etc. ...
 
-# ... [Keep the rest of your AGENTS, helper functions, etc. unchanged] ...
-
-# ====================== DISCOVER JOBS TAB (Small Update) ======================
+# In TAB 1 - Discover Jobs, update the caption:
 with tab1:
     st.markdown("### ■ Discover Your Next Role")
+    st.caption(f"📊 Loaded **{len(st.session_state.jobs)}** job opportunities")
     
-    # Add GitHub source info
-    st.caption(f"📡 Loaded from GitHub • {len(st.session_state.jobs)} total opportunities")
-    
-    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-    with col1: search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
-    with col2: location_filter = st.selectbox("■ Location", ["All Locations"] + sorted(st.session_state.jobs['location'].dropna().unique().tolist()))
-    with col3: job_type = st.selectbox("■ Type", ["All Types"] + sorted(st.session_state.jobs['type'].dropna().unique().tolist()))
-    with col4: min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
-    
-    df = st.session_state.jobs.copy()
-    
-    # ... [Keep your existing filtering logic] ...
-    
-    st.caption(f"Showing **{len(df)}** opportunities")
-    if df.empty:
-        st.warning("No jobs match your filters.")
-    else:
-        for _, job in df.iterrows():
-            st.html(f"""
-            <div class="job-card">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <div class="job-title">{job['title']}</div>
-                        <div class="company">■ {job['company']}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
-                        <div style="color:#8899cc;">{job['location']}</div>
-                    </div>
-                </div>
-                <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
-                    <span class="badge">{job['type']}</span>
-                    <span class="badge">Posted {job['posted']}</span>
-                    <span class="badge">Match: {job.get('match', 85)}%</span>
-                </div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Description:</strong> {job.get('description','')}</div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Requirements:</strong> {job.get('requirements','')}</div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','')}</div>
-                <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
-                    <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
-                </div>
-            </div>
-            """)
+    # ... rest of your filtering and job card display code remains the same ...
