@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 st.set_page_config(
     page_title="Job Board",
@@ -18,7 +17,7 @@ def load_jobs_from_github():
     url = "https://raw.githubusercontent.com/BurstSoftware/open-job-postings/main/jobs.csv"
     try:
         df = pd.read_csv(url)
-        expected_cols = ["title", "company", "location", "salary", "posted", 
+        expected_cols = ["id", "title", "company", "location", "salary", "posted", 
                         "type", "match", "website", "phone", "description", 
                         "requirements", "benefits", "referrer"]
         
@@ -54,7 +53,7 @@ if search_term:
     filtered_df = filtered_df[mask]
 
 filtered_df = filtered_df[filtered_df['match'] >= min_match]
-filtered_df = filtered_df.sort_values(by='match', ascending=False)
+filtered_df = filtered_df.sort_values(by='match', ascending=False).reset_index(drop=True)
 
 st.sidebar.caption(f"Showing {len(filtered_df)} of {len(df)} jobs")
 
@@ -67,8 +66,8 @@ else:
     # 2 columns layout
     cols = st.columns(2)
     
-    for idx, job in filtered_df.iterrows():
-        col_idx = idx % 2
+    for i, job in filtered_df.iterrows():          # i is now always 0, 1, 2, ...
+        col_idx = i % 2
         with cols[col_idx]:
             with st.container(border=True):
                 # Header
@@ -95,7 +94,7 @@ else:
                     dcol1, dcol2 = st.columns(2)
                     with dcol1:
                         st.write(f"**ID:** {job.get('id', 'N/A')}")
-                        posted = job['posted']
+                        posted = job.get('posted')
                         st.write(f"**Posted:** {posted.date() if pd.notna(posted) else 'N/A'}")
                         st.write(f"**Phone:** {job.get('phone', 'N/A')}")
                         st.write(f"**Referrer:** {job.get('referrer', 'N/A')}")
@@ -115,7 +114,7 @@ else:
                     else:
                         st.button("Apply Now", disabled=True, use_container_width=True)
                 with b2:
-                    st.button("⭐ Save Job", key=f"save_{idx}", use_container_width=True)
+                    st.button("⭐ Save Job", key=f"save_{i}", use_container_width=True)
 
 st.divider()
 st.caption("Data from: https://github.com/BurstSoftware/open-job-postings")
