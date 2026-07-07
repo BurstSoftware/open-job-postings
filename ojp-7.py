@@ -22,29 +22,41 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ====================== CUSTOM CSS ======================
+# ====================== CUSTOM CSS (Updated for screenshot style) ======================
 st.markdown("""
 <style>
     .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
-    .job-card { 
-        background: linear-gradient(145deg, #16213e, #1e2a5c); 
-        border-radius: 20px; 
-        padding: 24px; 
-        margin: 16px 0; 
-        border: 1px solid #4a5d9e; 
-        transition: all 0.3s ease; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-    }
-    .job-card:hover { 
-        transform: translateY(-8px); 
-        box-shadow: 0 20px 40px rgba(74,93,158,0.4); 
-        border-color: #6e8cff; 
-    }
-    .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
-    .company { color: #8f9eff; font-weight: 600; }
-    .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
     .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
-    .meta { color: #8899cc; font-size: 0.9rem; margin: 4px 0; }
+    
+    .job-card {
+        background: linear-gradient(145deg, #1e2a5c, #16213e);
+        border-radius: 20px;
+        padding: 28px;
+        margin: 20px 0;
+        border: 1px solid #4a6bff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        transition: all 0.3s ease;
+    }
+    .job-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(74, 107, 255, 0.3);
+        border-color: #6e8cff;
+    }
+    .job-title { font-size: 1.65rem; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+    .company { color: #a0c4ff; font-weight: 600; font-size: 1.1rem; }
+    .salary { font-size: 1.5rem; font-weight: 700; color: #00ff9d; }
+    .location { color: #8899cc; font-size: 1rem; }
+    .badge {
+        display: inline-block;
+        background: #3a4a8c;
+        color: #c0d0ff;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        margin-right: 10px;
+        margin-bottom: 8px;
+    }
+    .section-title { color: #b0b8ff; font-weight: 600; margin-top: 18px; font-size: 1.05rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,9 +136,24 @@ AGENTS = {
     "🎯 Job Match Analyst": {
         "emoji": "📊",
         "description": "Analyzes how well a job matches your profile and gives fit scores with improvement tips.",
-        "system": "You are an expert job-market analyst..."
+        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches..."
     },
-    # Add the rest of your agents here...
+    "📝 CV Tailor": {
+        "emoji": "📄",
+        "description": "Expert CV writer that tailors your resume to specific job descriptions...",
+        "system": "You are a world-class CV writer..."
+    },
+    "✉️ Cover Letter Writer": {
+        "emoji": "💌",
+        "description": "Creates personalized, compelling cover letters...",
+        "system": "You write compelling, non-generic cover letters..."
+    },
+    "🧠 Interview Coach": {
+        "emoji": "🎤",
+        "description": "Prepares you for interviews with STAR method answers...",
+        "system": "You are a STAR-method interview coach..."
+    },
+    # Add the remaining agents as needed
 }
 
 # ====================== HELPER FUNCTIONS ======================
@@ -160,22 +187,36 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🔑 NVIDIA API Guide"
 ])
 
-# ==================== TAB 1: DISCOVERY JOBS (Full Job Cards) ====================
+# ==================== TAB 1: DISCOVERY JOBS (New Card Design) ====================
 with tab1:
-    st.markdown("### 🔍 Discovery Jobs — Live from GitHub")
-    st.caption(f"Last loaded: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | **{len(st.session_state.jobs)}** opportunities")
+    st.markdown("### ■ Discover Your Next Role")
     
-    col_a, _ = st.columns([1, 4])
-    with col_a:
-        if st.button("🔄 Refresh from GitHub", use_container_width=True):
-            st.cache_data.clear()
-            st.session_state.jobs = load_jobs_from_github()
-            st.rerun()
+    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+    with col1: search = st.text_input("🔍 Search...", placeholder="Amazon Flex, warehouse")
+    with col2: 
+        locations = ["All Locations"] + list(st.session_state.jobs['location'].dropna().unique())
+        location_filter = st.selectbox("📍 Location", locations)
+    with col3: 
+        types = ["All Types"] + list(st.session_state.jobs['type'].dropna().unique())
+        job_type = st.selectbox("📋 Type", types)
+    with col4: 
+        min_salary = st.slider("💰 Min Hourly ($)", 0, 200, 15)
     
     df = st.session_state.jobs.copy()
+    # Apply filters...
+    if search:
+        df = df[df['title'].str.contains(search, case=False, na=False) | 
+                df['company'].str.contains(search, case=False, na=False) | 
+                df['description'].str.contains(search, case=False, na=False)]
+    if location_filter != "All Locations":
+        df = df[df['location'].str.contains(location_filter, case=False, na=False)]
+    if job_type != "All Types":
+        df = df[df['type'] == job_type]
+    
+    st.caption(f"Showing **{len(df)}** opportunities")
     
     if df.empty:
-        st.warning("No jobs found.")
+        st.warning("No jobs match your filters.")
     else:
         for _, job in df.iterrows():
             st.html(f"""
@@ -186,23 +227,27 @@ with tab1:
                         <div class="company">■ {job.get('company', 'N/A')}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:1.35rem; font-weight:700; color:#00ff9d;">{job.get('salary', 'N/A')}</div>
-                        <div style="color:#8899cc;">{job.get('location', 'N/A')}</div>
+                        <div class="salary">{job.get('salary', 'N/A')}</div>
+                        <div class="location">{job.get('location', 'N/A')}</div>
                     </div>
                 </div>
 
-                <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
+                <div style="margin: 24px 0 18px 0; display: flex; flex-wrap: wrap; gap: 10px;">
                     <span class="badge">{job.get('type', 'N/A')}</span>
-                    <span class="badge">Posted: {job.get('posted', 'N/A')}</span>
+                    <span class="badge">Posted {job.get('posted', 'N/A')}</span>
                     <span class="badge">Match: {job.get('match', 85)}%</span>
                 </div>
 
-                <div class="meta"><strong>ID:</strong> {job.get('id', 'N/A')}</div>
-                <div style="color:#b0b8ff; line-height:1.6; margin-bottom:12px;"><strong>Description:</strong> {job.get('description','N/A')}</div>
-                <div style="color:#b0b8ff; line-height:1.6; margin-bottom:12px;"><strong>Requirements:</strong> {job.get('requirements','N/A')}</div>
-                <div style="color:#b0b8ff; line-height:1.6; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','N/A')}</div>
+                <div class="section-title">Description:</div>
+                <div style="color:#d0d8ff; line-height:1.6;">{job.get('description','N/A')}</div>
                 
-                <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
+                <div class="section-title">Requirements:</div>
+                <div style="color:#d0d8ff; line-height:1.6;">{job.get('requirements','N/A')}</div>
+                
+                <div class="section-title">Benefits:</div>
+                <div style="color:#d0d8ff; line-height:1.6;">{job.get('benefits','N/A')}</div>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #334477; display: flex; gap: 30px; font-size: 1rem;">
                     <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
                     <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
                     <div><strong>Referrer:</strong> {job.get('referrer','N/A')}</div>
@@ -210,7 +255,19 @@ with tab1:
             </div>
             """)
 
-# ==================== TAB 2, 3, 4 ====================
-# Paste your original AI Job Assistant, Profile, and NVIDIA Guide code here
+# ==================== TAB 2: AI JOB ASSISTANT ====================
+with tab2:
+    st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
+    # Paste your full original AI Assistant code here (agent selector, chat, etc.)
+
+# ==================== TAB 3: PROFILE ====================
+with tab3:
+    st.markdown("### 📝 Profile")
+    # Paste your original Profile code here
+
+# ==================== TAB 4: NVIDIA API GUIDE ====================
+with tab4:
+    st.markdown("### 🔑 How to Create Your NVIDIA API Key")
+    # Paste your original NVIDIA Guide code here
 
 st.caption("Open Job Postings • Live from GitHub • NVIDIA NIM + Multi-Agent AI Assistant")
