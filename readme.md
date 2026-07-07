@@ -126,6 +126,10 @@ We believe the current job discovery infrastructure is fundamentally misaligned 
 
 *This `project.md` will be updated continuously as research and development progress.*
 
+7/7/26
+Updated ui and application.  
+Tested different methods and uis, the current one is robust enough to market for $49 dollars per month, per job to companies accross the us.
+
 7/3/26
 
 Created a udpated prototype using streamlit cloud, streamlit python 3.14.6 and: 
