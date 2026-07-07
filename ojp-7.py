@@ -4,7 +4,6 @@ from datetime import datetime
 import uuid
 import re
 import json
-import requests
 
 # Try to import OpenAI
 try:
@@ -125,7 +124,6 @@ def load_jobs_from_github():
         df = pd.read_csv(url)
         return df
     except:
-        # Fallback data
         return pd.DataFrame([{
             "id": str(uuid.uuid4()),
             "title": "Amazon Flex - X",
@@ -146,7 +144,7 @@ def load_jobs_from_github():
 if "jobs" not in st.session_state:
     st.session_state.jobs = load_jobs_from_github()
 
-# ====================== OTHER SESSION STATE ======================
+# ====================== SESSION STATE ======================
 if "profile" not in st.session_state:
     st.session_state.profile = pd.DataFrame([{"name": "", "location": "", "experience": "", "skills": "", "education": "", "certifications": ""}])
 
@@ -160,7 +158,10 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 # ====================== AGENTS ======================
-AGENTS = { ... }  # (Your original AGENTS dictionary remains unchanged)
+AGENTS = {
+    "🎯 Job Match Analyst": {"emoji": "📊", "description": "Analyzes how well a job matches your profile...", "system": "..."},
+    # ... (keep all your original agents here)
+}
 
 # ====================== HELPER FUNCTIONS ======================
 def get_nvidia_client():
@@ -183,14 +184,9 @@ def call_nvidia_llm(messages, temperature=None):
     except Exception as e:
         return f"❌ NVIDIA API Error: {str(e)}"
 
-def extract_min_salary(s):
-    nums = re.findall(r'\d+', str(s))
-    return int(nums[0]) if nums else 0
-
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-# Updated Tabs (Discover Jobs removed)
 tab1, tab2, tab3, tab4 = st.tabs([
     "🔍 Discovery Jobs", 
     "💬 AI Job Assistant", 
@@ -198,10 +194,10 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🔑 NVIDIA API Guide"
 ])
 
-# ==================== TAB 1: DISCOVERY JOBS (GitHub DataFrame) ====================
+# ==================== TAB 1: DISCOVERY JOBS (Job Cards) ====================
 with tab1:
     st.markdown("### 🔍 Discovery Jobs — Live from GitHub")
-    st.caption(f"Last loaded: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    st.caption(f"Last loaded: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Showing **{len(st.session_state.jobs)}** opportunities")
     
     col_a, col_b = st.columns([1, 4])
     with col_a:
@@ -210,30 +206,46 @@ with tab1:
             st.session_state.jobs = load_jobs_from_github()
             st.rerun()
     
-    st.dataframe(
-        st.session_state.jobs,
-        use_container_width=True,
-        hide_index=True,
-        height=650,
-        column_config={
-            "website": st.column_config.LinkColumn("Apply Now"),
-            "match": st.column_config.ProgressColumn("Match %", min_value=0, max_value=100),
-        }
-    )
+    df = st.session_state.jobs.copy()
     
-    st.download_button(
-        "📥 Download CSV",
-        data=st.session_state.jobs.to_csv(index=False),
-        file_name=f"open_job_postings_{datetime.now().strftime('%Y%m%d')}.csv",
-        mime="text/csv"
-    )
+    if df.empty:
+        st.warning("No jobs found.")
+    else:
+        for _, job in df.iterrows():
+            st.html(f"""
+            <div class="job-card">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <div class="job-title">{job.get('title', 'N/A')}</div>
+                        <div class="company">■ {job.get('company', 'N/A')}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job.get('salary', 'N/A')}</div>
+                        <div style="color:#8899cc;">{job.get('location', 'N/A')}</div>
+                    </div>
+                </div>
+                <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
+                    <span class="badge">{job.get('type', 'N/A')}</span>
+                    <span class="badge">Posted {job.get('posted', 'N/A')}</span>
+                    <span class="badge">Match: {job.get('match', 85)}%</span>
+                </div>
+                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Description:</strong> {job.get('description','N/A')}</div>
+                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Requirements:</strong> {job.get('requirements','N/A')}</div>
+                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','N/A')}</div>
+                <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
+                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
+                    <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
+                </div>
+            </div>
+            """)
 
 # ==================== TAB 2: AI JOB ASSISTANT ====================
 with tab2:
-    # (Your original AI Job Assistant code remains unchanged)
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
-    # ... rest of your AI tab code ...
+    # Paste your full original AI Job Assistant code here (the one with agent selector, chat, etc.)
+    # ... (unchanged from your previous version)
 
-# ==================== TAB 3 & 4 remain unchanged ====================
+# ==================== TAB 3 & 4 (Profile + NVIDIA Guide) ====================
+# Paste your original Tab 3 and Tab 4 code here
 
 st.caption("Open Job Postings • Live from GitHub • NVIDIA NIM + Multi-Agent AI Assistant")
