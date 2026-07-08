@@ -105,6 +105,30 @@ if "jobs" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# ====================== AGENTS ======================
+AGENTS = {
+    "🎯 Job Match Analyst": {
+        "emoji": "📊",
+        "description": "Analyzes how well a job matches your profile and gives fit scores.",
+        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight matches, red flags, and suggest improvements."
+    },
+    "📝 CV Tailor": {
+        "emoji": "📄",
+        "description": "Expert CV writer that tailors your resume to specific job descriptions.",
+        "system": "You are a world-class CV writer. Optimize for ATS and use strong action verbs."
+    },
+    "✉️ Cover Letter Writer": {
+        "emoji": "💌",
+        "description": "Creates personalized, compelling cover letters.",
+        "system": "You write compelling, non-generic cover letters tied directly to the job."
+    },
+    "🧠 Interview Coach": {
+        "emoji": "🎤",
+        "description": "Prepares you for interviews with STAR method answers.",
+        "system": "You are a STAR-method interview coach. Generate behavioral answers."
+    }
+}
+
 # ====================== HELPER FUNCTIONS ======================
 def get_nvidia_client():
     try:
