@@ -86,6 +86,10 @@ st.markdown("""
         padding: 20px;
         margin: 16px 0;
         border-left: 5px solid #6e8cff;
+        color: white;
+    }
+    .guide-step h4, .guide-step p {
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -242,7 +246,8 @@ with tab1:
         st.warning("No jobs match your filters.")
     else:
         for _, job in df.iterrows():
-            st.html(f"""
+            # Replaced st.html with st.markdown(..., unsafe_allow_html=True) to prevent tab bleeding
+            st.markdown(f"""
             <div class="job-card">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
                     <div>
@@ -267,7 +272,7 @@ with tab1:
                     <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
                 </div>
             </div>
-            """)
+            """, unsafe_allow_html=True)
 
 # ==================== TAB 2: AI JOB ASSISTANT ====================
 with tab2:
