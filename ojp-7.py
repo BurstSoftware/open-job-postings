@@ -236,7 +236,7 @@ with tab2:
         
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB (FIXED) ====================
+# ==================== TAB 3: SUBMIT JOB ====================
 with tab3:
     st.markdown("### 🚀 Submit a Job Posting")
     
