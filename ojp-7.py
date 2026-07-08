@@ -165,7 +165,9 @@ with tab1:
         st.warning("No jobs match your filters.")
     else:
         for _, job in df.iterrows():
-            with st.expander(f"**{job['title']}** — {job['company']} • {job['salary']}"):
+            # Open the Amazon job by default
+            is_amazon = "Amazon" in job['title']
+            with st.expander(f"**{job['title']}** — {job['company']} • {job['salary']}", expanded=is_amazon):
                 col_a, col_b = st.columns([3, 2])
                 with col_a:
                     st.write(f"**Location:** {job['location']}")
@@ -203,7 +205,6 @@ with tab2:
         st.session_state.chat_history = []
         st.rerun()
     
-    # Chat display
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.chat_message("user").write(msg["content"])
