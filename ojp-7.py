@@ -29,18 +29,44 @@ st.markdown("""
     .job-card { 
         background: linear-gradient(145deg, #16213e, #1e2a5c); 
         border-radius: 20px; 
-        padding: 24px; 
-        margin: 16px 0; 
+        padding: 28px; 
+        margin: 20px 0; 
         border: 1px solid #4a5d9e; 
-        transition: all 0.3s ease; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
     }
-    .job-card:hover { 
-        transform: translateY(-8px); 
-        box-shadow: 0 20px 40px rgba(74,93,158,0.4); 
-        border-color: #6e8cff; 
+    .job-title { font-size: 1.8rem; font-weight: 700; color: #a0c4ff; margin-bottom: 6px; }
+    .salary { font-size: 1.6rem; font-weight: 700; color: #00ff9d; }
+    .company { color: #8f9eff; font-weight: 600; font-size: 1.15rem; }
+    .badge { 
+        display: inline-block; 
+        background: #3a4a8c; 
+        color: #c0d0ff; 
+        padding: 6px 16px; 
+        border-radius: 30px; 
+        font-size: 0.85rem; 
+        margin-right: 10px; 
+        margin-bottom: 8px; 
     }
-    .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+    .header-title { 
+        font-size: 2.8rem; 
+        background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
+        font-weight: 800; 
+    }
+    .apply-btn {
+        background: linear-gradient(90deg, #00ff9d, #00e68a);
+        color: #0f0f23;
+        font-weight: 700;
+        padding: 16px 50px;
+        border-radius: 50px;
+        text-align: center;
+        font-size: 1.2rem;
+        margin-top: 20px;
+        display: block;
+        text-decoration: none;
+        box-shadow: 0 8px 25px rgba(0, 255, 157, 0.3);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -72,10 +98,10 @@ if "jobs" not in st.session_state:
             "type": "Part Time >19 hours a week",
             "match": 92,
             "website": "http://amazon.com/getpaid",
-            "phone": "N/a",
-            "description": "Picking, packing, sorting, stowing",
-            "requirements": "Lifting up to 49lbs, twisting, bending, stooping",
-            "benefits": "Benefits available through the A to Z app",
+            "phone": "555-123-4567",
+            "description": "picking, packing, stowing, water spider",
+            "requirements": "lifting up to 49lbs, twisting, bending, stooping, picking, packing",
+            "benefits": "benefits available through the A to Z app",
             "referrer": "narossoh"
         }
     ]
@@ -161,16 +187,43 @@ with tab1:
                         <div class="company">■ {job['company']}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
-                        <div style="color:#8899cc;">{job['location']}</div>
+                        <div class="salary">{job['salary']}</div>
+                        <div style="color:#8899cc; margin-top: 4px;">{job['location']}</div>
                     </div>
                 </div>
-                <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
+                
+                <div style="margin: 24px 0 20px 0; display: flex; flex-wrap: wrap; gap: 10px;">
                     <span class="badge">{job['type']}</span>
                     <span class="badge">Posted {job['posted']}</span>
                     <span class="badge">Match: {job.get('match', 85)}%</span>
                 </div>
-                <div style="color:#b0b8ff; line-height:1.5;"><strong>Description:</strong> {job.get('description','')}</div>
+                
+                <div style="margin-bottom: 18px;">
+                    <strong>Description</strong><br>
+                    {job.get('description','')}
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <strong>Requirements</strong><br>
+                    {job.get('requirements','')}
+                </div>
+                <div style="margin-bottom: 22px;">
+                    <strong>Benefits</strong><br>
+                    {job.get('benefits','')}
+                </div>
+                
+                <div style="border-top: 1px solid #334477; padding-top: 16px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">amazon.com/getpaid</a><br>
+                        <strong>Phone:</strong> {job.get('phone','N/A')}
+                    </div>
+                    <div style="text-align:right;">
+                        <a href="{job.get('website','#')}" target="_blank" class="apply-btn">🚀 Apply Now</a>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px; color:#8899cc;">
+                    Referred By: {job.get('referrer','N/A')}
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -202,7 +255,7 @@ with tab2:
             st.session_state.chat_history.append({"role": "assistant", "content": response})
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB (NEW SIMPLIFIED APPROACH) ====================
+# ==================== TAB 3: SUBMIT JOB ====================
 with tab3:
     st.markdown("### 🚀 Submit a Job Posting")
     
@@ -217,7 +270,6 @@ with tab3:
     </div>
     """, unsafe_allow_html=True)
 
-    # Reliable Native Streamlit Button
     st.link_button(
         label="📋 Fill Out the Form & List Your Job Now — Only $49/month",
         url="https://forms.gle/Yjzx9cbrMWZ6mrA58",
