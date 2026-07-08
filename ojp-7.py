@@ -21,6 +21,22 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ====================== AGENTS DEFINITION ======================
+AGENTS = {
+    "General Job Assistant": {
+        "system": "You are a helpful AI career assistant. Provide clear, practical advice about jobs, applications, and career growth."
+    },
+    "Resume & Interview Coach": {
+        "system": "You are an expert resume and interview coach. Help users improve their resumes, prepare for interviews, and answer behavioral questions."
+    },
+    "Job Match Analyst": {
+        "system": "You are a job matching specialist. Analyze how well a candidate fits a job based on the current listings and give honest feedback."
+    },
+    "Salary & Negotiation Expert": {
+        "system": "You are a salary negotiation and compensation expert. Advise on fair pay, benefits, and negotiation strategies."
+    }
+}
+
 # ====================== SIDEBAR ======================
 with st.sidebar:
     st.title("■ Open Job Postings")
@@ -47,9 +63,9 @@ if "jobs" not in st.session_state:
             "salary": "$19/hr",
             "posted": "2026-07-04",
             "type": "Part Time >19 hours a week",
-            "match": 100,
+            "match": 92,
             "website": "http://amazon.com/getpaid",
-            "phone": "N/A",
+            "phone": "555-123-4567",
             "description": "picking, packing, stowing, water spider",
             "requirements": "lifting up to 49lbs, twisting, bending, stooping, picking, packing",
             "benefits": "benefits available through the A to Z app",
@@ -155,18 +171,20 @@ with tab1:
 
 # ==================== TAB 2: AI JOB ASSISTANT ====================
 with tab2:
-    st.subheader("AI Job Assistant")
+    st.subheader("AI Job Assistant — Multi-Agent Studio")
+    
+    selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()))
+    agent = AGENTS[selected_agent_name]
     
     if st.button("🗑️ New Conversation"):
         st.session_state.chat_history = []
         st.rerun()
     
-    # Simple chat display
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.chat_message("user").write(msg["content"])
         else:
-            st.chat_message("assistant").write(msg["content"])
+            st.chat_message("assistant").write(f"**{selected_agent_name}:** {msg['content']}")
     
     if prompt := st.chat_input("Describe the job or what you need help with..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
@@ -174,8 +192,8 @@ with tab2:
         with st.spinner("Thinking..."):
             context = {"current_jobs": st.session_state.jobs.to_dict(orient="records")}
             messages = [
-                {"role": "system", "content": "You are a helpful AI job assistant. Use the provided job context to give accurate advice."},
-                {"role": "user", "content": f"Context: {json.dumps(context)}\n\nUser request: {prompt}"}
+                {"role": "system", "content": agent["system"]},
+                {"role": "user", "content": f"Context: {json.dumps(context)}\n\nRequest: {prompt}"}
             ]
             response = call_nvidia_llm(messages)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
@@ -209,4 +227,4 @@ with tab3:
     
     st.success("All submissions are reviewed for quality before going live.")
 
-st.caption("Open Job Postings • NVIDIA NIM + AI Assistant • Employers: $49/month listings")
+st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
