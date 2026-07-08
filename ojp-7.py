@@ -308,44 +308,69 @@ with tab2:
         
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB ====================
+# ==================== TAB 3: SUBMIT JOB (BEAUTIFIED) ====================
 with tab3:
-    st.markdown("---")
-    st.subheader("🚀 Quickest Way: Submit via Google Form")
-
     st.markdown("""
-    <div style="text-align:center; margin: 30px 0;">
-        <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
-            <button style="background:#00ff9d; color:#0f0f23; font-size:1.3rem; font-weight:700; 
-                           padding:18px 48px; border:none; border-radius:50px; cursor:pointer;">
-                📋 Submit Job Posting Now ($49/month)
-            </button>
-        </a>
+    <div style="text-align:center; padding: 50px 20px; background: linear-gradient(145deg, #16213e, #1e2a5c); 
+                border-radius: 24px; margin-bottom: 40px; border: 1px solid #4a6bff;">
+        <h2 style="font-size: 2.6rem; margin-bottom: 16px; background: linear-gradient(90deg, #00ff9d, #00e68a); 
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🚀 Ready to Hire Fast?
+        </h2>
+        <p style="font-size: 1.35rem; color: #b0c4ff; max-width: 720px; margin: 0 auto 40px;">
+            Post your job in minutes • Reach qualified candidates • Zero spam
+        </p>
+        
+        <div style="margin: 40px 0;">
+            <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
+                <button style="background: linear-gradient(90deg, #00ff9d, #00e68a); color: #0f0f23; 
+                               font-size: 1.55rem; font-weight: 800; padding: 24px 68px; border: none; 
+                               border-radius: 50px; cursor: pointer; box-shadow: 0 12px 35px rgba(0, 255, 157, 0.35);
+                               transition: all 0.3s ease;">
+                    📋 Submit Your Job Posting Now — Only $49/month
+                </button>
+            </a>
+        </div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.08); 
+                    padding: 14px 32px; border-radius: 50px;">
+            <span style="color:#00ff9d; font-size:1.3rem;">✅</span>
+            <span style="color:#c0d0ff; font-weight:500;">Manual Review • Featured Placement • Fast Approval</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.caption("You will be redirected to a secure Google Form. After submission we will contact you to confirm details and send the invoice.")
+    col1, col2 = st.columns([3, 2])
+    
+    with col1:
+        st.markdown("### What You’ll Need to Submit")
+        st.markdown("""
+        <div style="background: #16213e; padding: 28px; border-radius: 20px; border-left: 6px solid #00ff9d;">
+            <ul style="list-style: none; padding-left: 0; font-size: 1.05rem;">
+                <li style="margin: 14px 0;">📌 <strong>Job Title</strong></li>
+                <li style="margin: 14px 0;">🏢 <strong>Company Name</strong></li>
+                <li style="margin: 14px 0;">📍 <strong>Work Location</strong></li>
+                <li style="margin: 14px 0;">💰 <strong>Salary / Compensation</strong></li>
+                <li style="margin: 14px 0;">📅 <strong>Posted Date & Job Type</strong></li>
+                <li style="margin: 14px 0;">🔗 <strong>Application Link / Website</strong></li>
+                <li style="margin: 14px 0;">📞 <strong>Phone Number</strong></li>
+                <li style="margin: 14px 0;">📝 <strong>Full Description, Requirements & Benefits</strong></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("### Required Information")
-    st.markdown("""
-    • Job Title  
-    • Company Name  
-    • Work Location  
-    • Salary / Compensation  
-    • Job Posted Date  
-    • Job Type  
-    • Website / Application Link  
-    • Phone Number  
-    • Job Description  
-    • Job Requirements  
-    • Job Benefits  
-    • Job Referrer (optional)  
-    • Your Name (contact)  
-    • Your Phone Number  
-    • Your Email Address  
-    • Best Time to Reach You
-    """)
+    with col2:
+        st.markdown("### Why Employers Love Us")
+        st.info("""
+        **✓ Zero spam, real candidates only**  
+        **✓ Featured on homepage**  
+        **✓ AI-powered matching**  
+        **✓ Fast 24-48 hour approval**  
+        **✓ One flat monthly rate — no hidden fees**
+        """)
+        st.success("💡 All postings are manually reviewed for quality and relevance.")
 
-    st.info("💡 All submissions are manually reviewed for quality before going live.")
+    st.markdown("---")
+    st.caption("After submitting the form, our team will contact you within 24 hours to confirm details and activate your listing.")
 
 st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
