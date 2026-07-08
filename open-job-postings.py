@@ -1,3 +1,5 @@
+# Complete Updated Codebase with Beautiful "Post a Job" Tab
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -88,8 +90,42 @@ st.markdown("""
         border-left: 5px solid #6e8cff;
         color: white;
     }
-    .guide-step h4, .guide-step p {
-        color: white;
+
+    /* Employers Section */
+    .employer-card {
+        background: linear-gradient(145deg, #16213e, #1e2a5c);
+        border-radius: 20px;
+        padding: 32px;
+        border: 2px solid #6e8cff;
+        box-shadow: 0 15px 35px rgba(110, 140, 255, 0.15);
+        transition: all 0.3s ease;
+    }
+    .employer-card:hover {
+        border-color: #00ff9d;
+        transform: translateY(-5px);
+    }
+    .req-item {
+        background: rgba(58, 74, 140, 0.4);
+        padding: 12px 18px;
+        border-radius: 12px;
+        margin: 8px 0;
+        border-left: 4px solid #6e8cff;
+    }
+    .big-button {
+        background: linear-gradient(90deg, #00ff9d, #00cc7a);
+        color: #0f0f23;
+        font-size: 1.35rem;
+        font-weight: 700;
+        padding: 20px 60px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 255, 157, 0.3);
+    }
+    .big-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 255, 157, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -214,11 +250,13 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs([
+# ==================== TABS ====================
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🔍 Discover Jobs", 
     "💬 AI Job Assistant", 
     "📝 Profile",
-    "🔑 NVIDIA API Guide"
+    "🔑 NVIDIA API Guide",
+    "💼 Post a Job • Employers"
 ])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
@@ -246,7 +284,6 @@ with tab1:
         st.warning("No jobs match your filters.")
     else:
         for _, job in df.iterrows():
-            # Replaced st.html with st.markdown(..., unsafe_allow_html=True) to prevent tab bleeding
             st.markdown(f"""
             <div class="job-card">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
@@ -278,24 +315,21 @@ with tab1:
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
-    # === Aligned Specialist Selector + New Conversation Button ===
     col_select, col_new = st.columns([4, 1.2])
     with col_select:
         selected_agent_name = st.selectbox(
             "Select Specialist", 
             list(AGENTS.keys()), 
-            key="agent_select",
-            label_visibility="visible"
+            key="agent_select"
         )
     with col_new:
-        st.markdown("<br>", unsafe_allow_html=True)  # Vertical alignment fix
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑️ New Conversation", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
     
     agent = AGENTS[selected_agent_name]
     
-    # Agent Info Card
     st.markdown(f"""
     <div class="agent-info">
         <div class="agent-info-emoji">{agent['emoji']}</div>
@@ -306,7 +340,6 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
     
-    # Chat Section
     st.subheader("Chat with Agent")
     chat_container = st.container()
     with chat_container:
@@ -322,7 +355,7 @@ with tab2:
         with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
             context = {
                 "current_jobs": st.session_state.jobs.to_dict(orient="records"),
-                "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
+                "candidate_profile": st.session_state.profile.iloc[0].to_dict() if not st.session_state.profile.empty else {},
                 "candidate_extra": st.session_state.candidate_profile
             }
             
@@ -349,12 +382,12 @@ with tab3:
     profile_form = st.form("profile_form")
     profile_form.subheader("Update Your Profile")
     
-    name = profile_form.text_input("Name", value=st.session_state.profile['name'].iloc[0])
-    location = profile_form.text_input("Location", value=st.session_state.profile['location'].iloc[0])
-    experience = profile_form.text_area("Experience", value=st.session_state.profile['experience'].iloc[0])
-    skills = profile_form.text_area("Skills", value=st.session_state.profile['skills'].iloc[0])
-    education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0])
-    certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0])
+    name = profile_form.text_input("Name", value=st.session_state.profile['name'].iloc[0] if not st.session_state.profile.empty else "")
+    location = profile_form.text_input("Location", value=st.session_state.profile['location'].iloc[0] if not st.session_state.profile.empty else "")
+    experience = profile_form.text_area("Experience", value=st.session_state.profile['experience'].iloc[0] if not st.session_state.profile.empty else "")
+    skills = profile_form.text_area("Skills", value=st.session_state.profile['skills'].iloc[0] if not st.session_state.profile.empty else "")
+    education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0] if not st.session_state.profile.empty else "")
+    certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0] if not st.session_state.profile.empty else "")
     
     submit_button = profile_form.form_submit_button("Save Profile")
     if submit_button:
@@ -393,17 +426,75 @@ with tab4:
 
     <div class="guide-step">
         <h4>4. Configure</h4>
-        <p>Add a description, select <strong>NGC Catalog</strong> under Services, and set expiration (Never expires is fine for personal use).</p>
+        <p>Add a description, select <strong>NGC Catalog</strong> under Services, and set expiration (Never expires is fine).</p>
     </div>
 
     <div class="guide-step">
         <h4>5. Copy Key</h4>
-        <p>Copy the key (it starts with <code>nvapi-...</code>). Then paste it in the sidebar on the left.</p>
+        <p>Copy the key (it starts with <code>nvapi-...</code>). Paste it in the sidebar.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
     st.success("✅ After pasting the key in the sidebar, you can immediately start using the AI assistants!")
-    st.info("💡 Tip: The key is stored only in your current browser session.")
+    st.info("💡 The key is stored only in your current browser session.")
 
-st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
+# ==================== TAB 5: POST A JOB (BEAUTIFIED) ====================
+with tab5:
+    st.markdown('<h2 style="color:#a0c4ff;">💼 Get Your Job Listed on Open Job Postings</h2>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style="background: linear-gradient(145deg, #16213e, #1e2a5c); 
+                border-radius: 20px; padding: 32px; text-align: center; 
+                border: 2px solid #6e8cff; margin: 20px 0;">
+        <h3 style="color:#00ff9d; margin-bottom:8px;">$49 / Month • Featured Listing</h3>
+        <p style="font-size:1.1rem; color:#c0d0ff;">
+            Reach qualified candidates with zero spam. Your job stays live for 30 days.
+        </p>
+        <div style="margin: 24px 0; font-size:1.3rem; color:#a0c4ff;">
+            ✅ Listed on homepage • ✅ AI matching • ✅ Direct applications
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### How It Works")
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        st.markdown("""<div class="guide-step"><h4>1. Submit Form</h4><p>Fill out the details below or use our Google Form.</p></div>""", unsafe_allow_html=True)
+    with col_b:
+        st.markdown("""<div class="guide-step"><h4>2. Review & Approve</h4><p>We review your posting (usually within 24h).</p></div>""", unsafe_allow_html=True)
+    with col_c:
+        st.markdown("""<div class="guide-step"><h4>3. Pay & Go Live</h4><p>Receive invoice via email. Job goes live after payment.</p></div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("🚀 Quickest Way: Submit via Google Form")
+
+    st.markdown("""
+    <div class="employer-card" style="text-align:center; margin: 30px 0;">
+        <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
+            <button class="big-button">
+                📋 Submit Job Posting Now ($49/month)
+            </button>
+        </a>
+        <p style="margin-top: 24px; color:#b0b8ff; font-size:1.05rem;">
+            You will be redirected to a secure Google Form.<br>
+            After submission we will contact you to confirm details and send the invoice.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### Required Information")
+    req_items = [
+        "Job Title", "Company Name", "Work Location", "Salary / Compensation",
+        "Job Posted Date", "Job Type", "Website / Application Link", "Phone Number",
+        "Job Description", "Job Requirements", "Job Benefits", "Job Referrer (optional)",
+        "Your Name (contact)", "Your Phone Number", "Your Email Address", "Best Time to Reach You"
+    ]
+    
+    cols = st.columns(3)
+    for i, item in enumerate(req_items):
+        with cols[i % 3]:
+            st.markdown(f'<div class="req-item">• {item}</div>', unsafe_allow_html=True)
+
+    st.info("💡 All submissions are manually reviewed for quality before going live.", icon="🔍")
+
+st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
