@@ -308,7 +308,7 @@ with tab2:
         
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB (BEAUTIFIED) ====================
+# ==================== TAB 3: SUBMIT JOB ====================
 with tab3:
     st.markdown("""
     <div style="text-align:center; padding: 50px 20px; background: linear-gradient(145deg, #16213e, #1e2a5c); 
