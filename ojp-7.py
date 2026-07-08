@@ -45,38 +45,6 @@ st.markdown("""
     .company { color: #8f9eff; font-weight: 600; }
     .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
     .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
-
-    /* Agent Info */
-    .agent-info {
-        background: linear-gradient(145deg, #1e2a5c, #16213e); 
-        border-radius: 16px; 
-        padding: 18px 24px; 
-        border: 1px solid #445588;
-        margin: 15px 0 25px 0;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    .agent-info-emoji { font-size: 2.2rem; }
-    .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
-    
-    .chat-container {
-        background: #0f1629;
-        border-radius: 20px;
-        padding: 24px;
-        border: 1px solid #334477;
-        min-height: 520px;
-        overflow-y: auto;
-    }
-    .chat-message {
-        padding: 16px 22px;
-        border-radius: 20px;
-        margin: 14px 0;
-        max-width: 85%;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-    }
-    .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; border-bottom-right-radius: 6px; }
-    .ai-msg { background: linear-gradient(145deg, #1e2a5c, #16213e); color: #e0e0ff; margin-right: auto; border: 1px solid #445588; border-bottom-left-radius: 6px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -308,69 +276,55 @@ with tab2:
         
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB ====================
+# ==================== TAB 3: SUBMIT JOB (SIMPLIFIED) ====================
 with tab3:
+    st.markdown("### 🚀 Submit a Job Posting")
+    
     st.markdown("""
-    <div style="text-align:center; padding: 50px 20px; background: linear-gradient(145deg, #16213e, #1e2a5c); 
-                border-radius: 24px; margin-bottom: 40px; border: 1px solid #4a6bff;">
-        <h2 style="font-size: 2.6rem; margin-bottom: 16px; background: linear-gradient(90deg, #00ff9d, #00e68a); 
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            🚀 Ready to Hire Fast?
-        </h2>
-        <p style="font-size: 1.35rem; color: #b0c4ff; max-width: 720px; margin: 0 auto 40px;">
-            Post your job in minutes • Reach qualified candidates • Zero spam
+    <div style="background: linear-gradient(145deg, #16213e, #1e2a5c); 
+                padding: 50px 30px; border-radius: 24px; text-align: center; 
+                margin: 20px 0; border: 1px solid #4a6bff;">
+        <h2 style="color: #00ff9d; margin-bottom: 20px;">Get Your Job Live in 24 Hours</h2>
+        <p style="font-size: 1.35rem; color: #e0e0ff; max-width: 680px; margin: 0 auto 35px;">
+            Submit your job once. We review it manually and make it live on Open Job Postings <strong>within 24 hours</strong>.
         </p>
         
-        <div style="margin: 40px 0;">
-            <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
-                <button style="background: linear-gradient(90deg, #00ff9d, #00e68a); color: #0f0f23; 
-                               font-size: 1.55rem; font-weight: 800; padding: 24px 68px; border: none; 
-                               border-radius: 50px; cursor: pointer; box-shadow: 0 12px 35px rgba(0, 255, 157, 0.35);
-                               transition: all 0.3s ease;">
-                    📋 Submit Your Job Posting Now — Only $49/month
-                </button>
-            </a>
-        </div>
+        <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
+            <button style="background: linear-gradient(90deg, #00ff9d, #00e68a); color: #0f0f23; 
+                           font-size: 1.65rem; font-weight: 700; padding: 22px 70px; border: none; 
+                           border-radius: 50px; cursor: pointer; box-shadow: 0 12px 35px rgba(0, 255, 157, 0.4);">
+                📋 Fill Out the Form & List Your Job Now — Only $49/month
+            </button>
+        </a>
         
-        <div style="display: inline-flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.08); 
-                    padding: 14px 32px; border-radius: 50px;">
-            <span style="color:#00ff9d; font-size:1.3rem;">✅</span>
-            <span style="color:#c0d0ff; font-weight:500;">Manual Review • Featured Placement • Fast Approval</span>
-        </div>
+        <p style="margin-top: 35px; color: #a0c4ff; font-size: 1.1rem;">
+            ✅ Manual review • ✅ Fast approval • ✅ Live within 24 hours
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([3, 2])
-    
+    st.markdown("### How It Works")
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("### What You’ll Need to Submit")
-        st.markdown("""
-        <div style="background: #16213e; padding: 28px; border-radius: 20px; border-left: 6px solid #00ff9d;">
-            <ul style="list-style: none; padding-left: 0; font-size: 1.05rem;">
-                <li style="margin: 14px 0;">📌 <strong>Job Title</strong></li>
-                <li style="margin: 14px 0;">🏢 <strong>Company Name</strong></li>
-                <li style="margin: 14px 0;">📍 <strong>Work Location</strong></li>
-                <li style="margin: 14px 0;">💰 <strong>Salary / Compensation</strong></li>
-                <li style="margin: 14px 0;">📅 <strong>Posted Date & Job Type</strong></li>
-                <li style="margin: 14px 0;">🔗 <strong>Application Link / Website</strong></li>
-                <li style="margin: 14px 0;">📞 <strong>Phone Number</strong></li>
-                <li style="margin: 14px 0;">📝 <strong>Full Description, Requirements & Benefits</strong></li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.info("**1. Fill the Form**\nProvide your job details")
     with col2:
-        st.markdown("### Why Employers Love Us")
-        st.info("""
-        **✓ Zero spam, real candidates only**  
-        **✓ Featured on homepage**  
-        **✓ AI-powered matching**  
-        **✓ Fast 24-48 hour approval**  
-        **✓ One flat monthly rate — no hidden fees**
-        """)
-        st.success("💡 All postings are manually reviewed for quality and relevance.")
+        st.info("**2. We Review**\nManual quality check (usually same day)")
+    with col3:
+        st.info("**3. Go Live**\nYour job appears on the site within 24 hours")
 
-    st.markdown("---")
-    st.caption("After submitting the form, our team will contact you within 24 hours to confirm details and activate your listing.")
+    st.markdown("### What to Include in the Form")
+    st.markdown("""
+    • Job Title & Company Name  
+    • Work Location  
+    • Salary / Compensation  
+    • Job Type & Posted Date  
+    • Full Job Description  
+    • Requirements & Benefits  
+    • Application Website / Link  
+    • Phone Number  
+    • Your Contact Information
+    """)
+
+    st.success("💡 All submissions are manually reviewed for quality before going live.")
 
 st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
