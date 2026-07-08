@@ -1,3 +1,5 @@
+# Complete Updated Codebase with "Post a Job" Tab
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -214,11 +216,13 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs([
+# ==================== UPDATED TABS ====================
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🔍 Discover Jobs", 
     "💬 AI Job Assistant", 
     "📝 Profile",
-    "🔑 NVIDIA API Guide"
+    "🔑 NVIDIA API Guide",
+    "💼 Post a Job • Employers"
 ])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
@@ -246,7 +250,6 @@ with tab1:
         st.warning("No jobs match your filters.")
     else:
         for _, job in df.iterrows():
-            # Replaced st.html with st.markdown(..., unsafe_allow_html=True) to prevent tab bleeding
             st.markdown(f"""
             <div class="job-card">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
@@ -278,7 +281,6 @@ with tab1:
 with tab2:
     st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
     
-    # === Aligned Specialist Selector + New Conversation Button ===
     col_select, col_new = st.columns([4, 1.2])
     with col_select:
         selected_agent_name = st.selectbox(
@@ -288,14 +290,13 @@ with tab2:
             label_visibility="visible"
         )
     with col_new:
-        st.markdown("<br>", unsafe_allow_html=True)  # Vertical alignment fix
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑️ New Conversation", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
     
     agent = AGENTS[selected_agent_name]
     
-    # Agent Info Card
     st.markdown(f"""
     <div class="agent-info">
         <div class="agent-info-emoji">{agent['emoji']}</div>
@@ -306,7 +307,6 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
     
-    # Chat Section
     st.subheader("Chat with Agent")
     chat_container = st.container()
     with chat_container:
@@ -406,4 +406,83 @@ with tab4:
     st.success("✅ After pasting the key in the sidebar, you can immediately start using the AI assistants!")
     st.info("💡 Tip: The key is stored only in your current browser session.")
 
-st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
+# ==================== TAB 5: POST A JOB (NEW) ====================
+with tab5:
+    st.markdown('<h2 style="color:#a0c4ff;">💼 Get Your Job Listed on Open Job Postings</h2>', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background: linear-gradient(145deg, #16213e, #1e2a5c); 
+                border-radius: 20px; padding: 32px; text-align: center; 
+                border: 2px solid #6e8cff; margin: 20px 0;">
+        <h3 style="color:#00ff9d; margin-bottom:8px;">$49 / Month • Featured Listing</h3>
+        <p style="font-size:1.1rem; color:#c0d0ff;">
+            Reach qualified candidates with zero spam. Your job stays live for 30 days.
+        </p>
+        <div style="margin: 24px 0; font-size:1.3rem; color:#a0c4ff;">
+            ✅ Listed on homepage • ✅ AI matching • ✅ Direct applications
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### How It Works")
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        st.markdown("""
+        <div class="guide-step">
+            <h4>1. Submit Form</h4>
+            <p>Fill out the details below or use our Google Form.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_b:
+        st.markdown("""
+        <div class="guide-step">
+            <h4>2. Review & Approve</h4>
+            <p>We review your posting (usually within 24h).</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_c:
+        st.markdown("""
+        <div class="guide-step">
+            <h4>3. Pay & Go Live</h4>
+            <p>Receive invoice via email. Job goes live after payment.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("🚀 Quickest Way: Submit via Google Form")
+
+    st.markdown("""
+    <div style="text-align:center; margin: 30px 0;">
+        <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
+            <button style="background:#00ff9d; color:#0f0f23; font-size:1.3rem; font-weight:700; 
+                           padding:18px 48px; border:none; border-radius:50px; cursor:pointer;">
+                📋 Submit Job Posting Now ($49/month)
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.caption("You will be redirected to a secure Google Form. After submission we will contact you to confirm details and send the invoice.")
+
+    st.markdown("### Required Information")
+    st.markdown("""
+    • Job Title  
+    • Company Name  
+    • Work Location  
+    • Salary / Compensation  
+    • Job Posted Date  
+    • Job Type  
+    • Website / Application Link  
+    • Phone Number  
+    • Job Description  
+    • Job Requirements  
+    • Job Benefits  
+    • Job Referrer (optional)  
+    • Your Name (contact)  
+    • Your Phone Number  
+    • Your Email Address  
+    • Best Time to Reach You
+    """)
+
+    st.info("💡 All submissions are manually reviewed for quality before going live.")
+
+st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
