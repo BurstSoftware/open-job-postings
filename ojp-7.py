@@ -13,6 +13,40 @@ except ImportError:
     st.error("❌ `openai` package is not installed. Run: `pip install openai`")
     st.stop()
 
+# ====================== AGENTS ======================
+AGENTS = {
+    "🎯 Job Match Analyst": {
+        "emoji": "📊",
+        "description": "Analyzes how well a job matches your profile and gives fit scores with improvement tips.",
+        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies."
+    },
+    "📝 CV Tailor": {
+        "emoji": "📄",
+        "description": "Expert CV writer that tailors your resume to specific job descriptions and optimizes for ATS.",
+        "system": "You are a world-class CV writer. Convert achievements into strong bullet points using action verbs. Optimize for ATS."
+    },
+    "✉️ Cover Letter Writer": {
+        "emoji": "💌",
+        "description": "Creates personalized, compelling cover letters that stand out to recruiters.",
+        "system": "You write compelling, non-generic cover letters tied directly to the job description."
+    },
+    "🧠 Interview Coach": {
+        "emoji": "🎤",
+        "description": "Prepares you for interviews with STAR method answers and mock interview practice.",
+        "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."
+    },
+    "📈 Salary & Negotiation": {
+        "emoji": "💰",
+        "description": "Provides salary benchmarks and negotiation strategies tailored to your experience.",
+        "system": "You provide realistic salary benchmarks and negotiation scripts."
+    },
+    "🚀 Upskill Advisor": {
+        "emoji": "📚",
+        "description": "Identifies skill gaps and creates personalized learning plans to help you grow.",
+        "system": "You analyze skill gaps and create personalized learning plans."
+    }
+}
+
 # ====================== CONFIG ======================
 st.set_page_config(
     page_title="Open Job Postings",
@@ -20,22 +54,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# ====================== AGENTS DEFINITION ======================
-AGENTS = {
-    "General Job Assistant": {
-        "system": "You are a helpful AI career assistant. Provide clear, practical advice about jobs, applications, and career growth."
-    },
-    "Resume & Interview Coach": {
-        "system": "You are an expert resume and interview coach. Help users improve their resumes, prepare for interviews, and answer behavioral questions."
-    },
-    "Job Match Analyst": {
-        "system": "You are a job matching specialist. Analyze how well a candidate fits a job based on the current listings and give honest feedback."
-    },
-    "Salary & Negotiation Expert": {
-        "system": "You are a salary negotiation and compensation expert. Advise on fair pay, benefits, and negotiation strategies."
-    }
-}
 
 # ====================== SIDEBAR ======================
 with st.sidebar:
@@ -173,18 +191,24 @@ with tab1:
 with tab2:
     st.subheader("AI Job Assistant — Multi-Agent Studio")
     
-    selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()))
+    selected_agent_name = st.selectbox(
+        "Select Specialist", 
+        list(AGENTS.keys())
+    )
     agent = AGENTS[selected_agent_name]
+    
+    st.caption(f"{agent['emoji']} {agent['description']}")
     
     if st.button("🗑️ New Conversation"):
         st.session_state.chat_history = []
         st.rerun()
     
+    # Chat display
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.chat_message("user").write(msg["content"])
         else:
-            st.chat_message("assistant").write(f"**{selected_agent_name}:** {msg['content']}")
+            st.chat_message("assistant", avatar=agent['emoji']).write(msg["content"])
     
     if prompt := st.chat_input("Describe the job or what you need help with..."):
         st.session_state.chat_history.append({"role": "user", "content": prompt})
