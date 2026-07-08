@@ -90,36 +90,12 @@ if "chat_history" not in st.session_state:
 
 # ====================== AGENTS ======================
 AGENTS = {
-    "🎯 Job Match Analyst": {
-        "emoji": "📊",
-        "description": "Analyzes how well a job matches your profile and gives fit scores with improvement tips.",
-        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies."
-    },
-    "📝 CV Tailor": {
-        "emoji": "📄",
-        "description": "Expert CV writer that tailors your resume to specific job descriptions and optimizes for ATS.",
-        "system": "You are a world-class CV writer. Convert achievements into strong bullet points using action verbs. Optimize for ATS."
-    },
-    "✉️ Cover Letter Writer": {
-        "emoji": "💌",
-        "description": "Creates personalized, compelling cover letters that stand out to recruiters.",
-        "system": "You write compelling, non-generic cover letters tied directly to the job description."
-    },
-    "🧠 Interview Coach": {
-        "emoji": "🎤",
-        "description": "Prepares you for interviews with STAR method answers and mock interview practice.",
-        "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."
-    },
-    "📈 Salary & Negotiation": {
-        "emoji": "💰",
-        "description": "Provides salary benchmarks and negotiation strategies tailored to your experience.",
-        "system": "You provide realistic salary benchmarks and negotiation scripts."
-    },
-    "🚀 Upskill Advisor": {
-        "emoji": "📚",
-        "description": "Identifies skill gaps and creates personalized learning plans to help you grow.",
-        "system": "You analyze skill gaps and create personalized learning plans."
-    }
+    "🎯 Job Match Analyst": {"emoji": "📊", "description": "Analyzes how well a job matches your profile and gives fit scores with improvement tips.", "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies."},
+    "📝 CV Tailor": {"emoji": "📄", "description": "Expert CV writer that tailors your resume to specific job descriptions and optimizes for ATS.", "system": "You are a world-class CV writer. Convert achievements into strong bullet points using action verbs. Optimize for ATS."},
+    "✉️ Cover Letter Writer": {"emoji": "💌", "description": "Creates personalized, compelling cover letters that stand out to recruiters.", "system": "You write compelling, non-generic cover letters tied directly to the job description."},
+    "🧠 Interview Coach": {"emoji": "🎤", "description": "Prepares you for interviews with STAR method answers and mock interview practice.", "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."},
+    "📈 Salary & Negotiation": {"emoji": "💰", "description": "Provides salary benchmarks and negotiation strategies tailored to your experience.", "system": "You provide realistic salary benchmarks and negotiation scripts."},
+    "🚀 Upskill Advisor": {"emoji": "📚", "description": "Identifies skill gaps and creates personalized learning plans to help you grow.", "system": "You analyze skill gaps and create personalized learning plans."}
 }
 
 # ====================== HELPER FUNCTIONS ======================
@@ -156,11 +132,7 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs([
-    "🔍 Discover Jobs", 
-    "💬 AI Job Assistant",
-    "🚀 Submit a Job"
-])
+tab1, tab2, tab3 = st.tabs(["🔍 Discover Jobs", "💬 AI Job Assistant", "🚀 Submit a Job"])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
 with tab1:
@@ -220,11 +192,7 @@ with tab2:
     
     col_select, col_new = st.columns([4, 1.2])
     with col_select:
-        selected_agent_name = st.selectbox(
-            "Select Specialist", 
-            list(AGENTS.keys()), 
-            key="agent_select"
-        )
+        selected_agent_name = st.selectbox("Select Specialist", list(AGENTS.keys()), key="agent_select")
     with col_new:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑️ New Conversation", use_container_width=True):
@@ -255,16 +223,8 @@ with tab2:
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
         with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
-            context = {
-                "current_jobs": st.session_state.jobs.to_dict(orient="records")
-            }
-            
-            full_prompt = f"""
-            Context:
-            {json.dumps(context, indent=2)}
-            
-            User request: {prompt}
-            """
+            context = {"current_jobs": st.session_state.jobs.to_dict(orient="records")}
+            full_prompt = f"Context:\n{json.dumps(context, indent=2)}\n\nUser request: {prompt}"
             
             messages = [
                 {"role": "system", "content": agent["system"]},
@@ -276,7 +236,7 @@ with tab2:
         
         st.rerun()
 
-# ==================== TAB 3: SUBMIT JOB (SIMPLIFIED) ====================
+# ==================== TAB 3: SUBMIT JOB ====================
 with tab3:
     st.markdown("### 🚀 Submit a Job Posting")
     
