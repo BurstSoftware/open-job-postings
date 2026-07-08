@@ -3,21 +3,12 @@ import pandas as pd
 from datetime import datetime
 import uuid
 import re
-import json
-
-# Try to import OpenAI
-try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    st.error("❌ `openai` package is not installed. Run: `pip install openai`")
-    st.stop()
+import time
 
 # ====================== CONFIG ======================
 st.set_page_config(
-    page_title="Open Job Postings • AI Powered",
-    page_icon="■",
+    page_title="AltIndeed Pro",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -25,385 +16,277 @@ st.set_page_config(
 # ====================== CUSTOM CSS ======================
 st.markdown("""
 <style>
-    .main { background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%); color: #e0e0ff; }
-    
-    /* Job Cards */
-    .job-card { 
-        background: linear-gradient(145deg, #16213e, #1e2a5c); 
-        border-radius: 20px; 
-        padding: 24px; 
-        margin: 16px 0; 
-        border: 1px solid #4a5d9e; 
-        transition: all 0.3s ease; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-    }
-    .job-card:hover { 
-        transform: translateY(-8px); 
-        box-shadow: 0 20px 40px rgba(74,93,158,0.4); 
-        border-color: #6e8cff; 
-    }
-    .job-title { font-size: 1.4rem; font-weight: 700; color: #a0c4ff; margin-bottom: 8px; }
-    .company { color: #8f9eff; font-weight: 600; }
-    .badge { display: inline-block; background: #3a4a8c; color: #c0d0ff; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; margin-right: 10px; margin-bottom: 8px; }
-    .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+/* App Background */
+.stApp {
+    background: radial-gradient(circle at top right, #1a1a2e 0%, #0f0f1a 100%);
+    color: #e0e0ff;
+}
 
-    /* Agent Info */
-    .agent-info {
-        background: linear-gradient(145deg, #1e2a5c, #16213e); 
-        border-radius: 16px; 
-        padding: 18px 24px; 
-        border: 1px solid #445588;
-        margin: 15px 0 25px 0;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    .agent-info-emoji { font-size: 2.2rem; }
-    .agent-title { font-size: 1.25rem; font-weight: 700; color: #a0c4ff; }
-    
-    .chat-container {
-        background: #0f1629;
-        border-radius: 20px;
-        padding: 24px;
-        border: 1px solid #334477;
-        min-height: 520px;
-        overflow-y: auto;
-    }
-    .chat-message {
-        padding: 16px 22px;
-        border-radius: 20px;
-        margin: 14px 0;
-        max-width: 85%;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-    }
-    .user-msg { background: linear-gradient(135deg, #4a6bff, #2a4fff); color: white; margin-left: auto; border-bottom-right-radius: 6px; }
-    .ai-msg { background: linear-gradient(145deg, #1e2a5c, #16213e); color: #e0e0ff; margin-right: auto; border: 1px solid #445588; border-bottom-left-radius: 6px; }
+/* Glassmorphism Job Cards */
+.job-card {
+    background: rgba(30, 42, 92, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 16px 0;
+    border: 1px solid rgba(110, 140, 255, 0.15);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
 
-    /* Guide Styling */
-    .guide-step {
-        background: linear-gradient(145deg, #16213e, #1e2a5c);
-        border-radius: 16px;
-        padding: 20px;
-        margin: 16px 0;
-        border-left: 5px solid #6e8cff;
-        color: white;
-    }
-    .guide-step h4, .guide-step p {
-        color: white;
-    }
+.job-card:hover {
+    transform: translateY(-5px);
+    background: rgba(40, 55, 115, 0.35);
+    border-color: #00ff9d;
+    box-shadow: 0 12px 40px rgba(0, 255, 157, 0.15);
+}
+
+/* Typography */
+.job-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ffffff, #a0c4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+}
+
+.company {
+    color: #8f9eff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+/* Badges */
+.badge-container {
+    margin: 16px 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: rgba(110, 140, 255, 0.1);
+    border: 1px solid rgba(110, 140, 255, 0.3);
+    color: #c0d0ff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.badge.match {
+    background: rgba(0, 255, 157, 0.1);
+    border-color: #00ff9d;
+    color: #00ff9d;
+}
+
+/* Header */
+.header-title {
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, #00ff9d, #00b8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Placeholder Banner */
+.demo-placeholder {
+    background: linear-gradient(90deg, rgba(255, 0, 127, 0.1), rgba(0, 255, 157, 0.1));
+    border-left: 4px solid #ff007f;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ====================== SIDEBAR ======================
-with st.sidebar:
-    st.markdown("# ■ **Open Job Postings**")
-    st.caption("Modern jobs. Zero spam. AI Powered.")
-    st.divider()
-    st.subheader("🔑 NVIDIA NIM Settings")
-    api_key = st.text_input("NVIDIA API Key (nvapi-...)", type="password", value=st.session_state.get("nvidia_api_key", ""), help="Paste your key from https://build.nvidia.com/")
-    if api_key and api_key != st.session_state.get("nvidia_api_key"):
-        st.session_state.nvidia_api_key = api_key
-        st.success("✅ API Key saved!", icon="🔑")
-        st.rerun()
-    
-    model_options = ["meta/llama-3.1-70b-instruct", "meta/llama-3.1-405b-instruct", "nvidia/nemotron-4-340b-instruct", "deepseek-ai/deepseek-v3"]
-    st.session_state.selected_model = st.selectbox("Select Model", model_options, index=0)
-    st.slider("Temperature", 0.0, 1.0, 0.7, 0.05, key="temperature")
-    
-    st.divider()
-    if st.button("🗑️ Clear All Data", use_container_width=True):
-        for key in ["jobs", "chat_history", "profile", "applications", "candidate_profile"]:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.rerun()
-    st.info("Powered by NVIDIA NIM", icon="ℹ️")
-
-# ====================== INITIAL DATA ======================
+# ====================== SESSION STATE ======================
 if "jobs" not in st.session_state:
-    jobs_list = [
+    st.session_state.jobs = pd.DataFrame([
         {
             "id": str(uuid.uuid4()),
-            "title": "Amazon Flex - X",
+            "title": "Senior Python Engineer",
+            "company": "TechCorp",
+            "location": "Remote",
+            "salary": "$120k–$160k",
+            "skills": "Python, Django, AWS, PostgreSQL",
+            "posted": "2026-07-01",
+            "type": "Full-time",
+            "match": 94
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Growth Marketing Manager",
+            "company": "GrowthCo",
+            "location": "New York, NY",
+            "salary": "$85k–$115k",
+            "skills": "SEO, Content Strategy, Analytics",
+            "posted": "2026-07-02",
+            "type": "Full-time",
+            "match": 87
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Product Designer",
+            "company": "Nexus Studio",
+            "location": "San Francisco",
+            "salary": "$130k–$170k",
+            "skills": "Figma, User Research, Prototyping",
+            "posted": "2026-07-03",
+            "type": "Full-time",
+            "match": 91
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Amazon Associate - WMN7 Flex",
             "company": "Amazon",
             "location": "North Mankato, MN 56003",
             "salary": "$19/hr",
+            "skills": "Warehouse, Picking, Packing, Flexible Schedule",
             "posted": "2026-07-04",
-            "type": "Part Time >19 hours a week",
-            "match": 92,
-            "website": "http://amazon.com/getpaid",
-            "phone": "N/a",
-            "description": "Picking, packing, sorting, stowing",
-            "requirements": "Lifting up to 49lbs, twisting, bending, stooping",
-            "benefits": "Benefits available through the A to Z app",
-            "referrer": "narossoh"
+            "type": "Part-time",
+            "match": 98
         }
-    ]
-    st.session_state.jobs = pd.DataFrame(jobs_list)
-
-if "profile" not in st.session_state:
-    st.session_state.profile = pd.DataFrame([{"name": "", "location": "", "experience": "", "skills": "", "education": "", "certifications": ""}])
-
-if "candidate_profile" not in st.session_state:
-    st.session_state.candidate_profile = {}
+    ])
 
 if "applications" not in st.session_state:
-    st.session_state.applications = pd.DataFrame(columns=["Date", "Company", "Role", "Status", "Fit Score"])
+    st.session_state.applications = []
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# ====================== SIDEBAR ======================
+with st.sidebar:
+    st.markdown("## ⚡ **AltIndeed Pro**")
+    st.caption("Next-Gen Tech Hiring.")
+    st.divider()
+    
+    # Dashboard stats
+    st.metric("Total Applications", len(st.session_state.applications))
+    st.metric("Profile Match Score", "92%", "+4% this week")
+    
+    st.divider()
+    if st.button("Reset Environment", type="primary", use_container_width=True):
+        st.session_state.jobs = st.session_state.jobs.iloc[:0]
+        st.session_state.applications = []
+        st.rerun()
+        
+    st.markdown("---")
+    st.info("Alpha v2.0 • Cyber Theme", icon="🌌")
 
-# ====================== AGENTS ======================
-AGENTS = {
-    "🎯 Job Match Analyst": {
-        "emoji": "📊",
-        "description": "Analyzes how well a job matches your profile and gives fit scores with improvement tips.",
-        "system": "You are an expert job-market analyst. Score job fit (0-100), highlight must-have vs nice-to-have matches, red flags, and suggest exact tailoring strategies."
-    },
-    "📝 CV Tailor": {
-        "emoji": "📄",
-        "description": "Expert CV writer that tailors your resume to specific job descriptions and optimizes for ATS.",
-        "system": "You are a world-class CV writer. Convert achievements into strong bullet points using action verbs. Optimize for ATS."
-    },
-    "✉️ Cover Letter Writer": {
-        "emoji": "💌",
-        "description": "Creates personalized, compelling cover letters that stand out to recruiters.",
-        "system": "You write compelling, non-generic cover letters tied directly to the job description."
-    },
-    "🧠 Interview Coach": {
-        "emoji": "🎤",
-        "description": "Prepares you for interviews with STAR method answers and mock interview practice.",
-        "system": "You are a STAR-method interview coach. Generate behavioral answers and simulate mock interviews."
-    },
-    "📈 Salary & Negotiation": {
-        "emoji": "💰",
-        "description": "Provides salary benchmarks and negotiation strategies tailored to your experience.",
-        "system": "You provide realistic salary benchmarks and negotiation scripts."
-    },
-    "🚀 Upskill Advisor": {
-        "emoji": "📚",
-        "description": "Identifies skill gaps and creates personalized learning plans to help you grow.",
-        "system": "You analyze skill gaps and create personalized learning plans."
-    }
-}
+# ====================== MAIN APP ======================
+st.markdown('<h1 class="header-title">AltIndeed</h1>', unsafe_allow_html=True)
+st.markdown("<p style='color: #8899cc; font-size: 1.2rem;'>Find your next hyper-growth opportunity.</p>", unsafe_allow_html=True)
 
-# ====================== HELPER FUNCTIONS ======================
-def get_nvidia_client():
-    if not st.session_state.get("nvidia_api_key"):
-        st.warning("⚠️ Please enter your NVIDIA API Key in the sidebar.")
-        return None
-    return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=st.session_state.nvidia_api_key)
+# ====================== SEARCH & FILTERS ======================
+with st.container():
+    st.markdown("### 🔍 Search Matrix")
+    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
-def call_nvidia_llm(messages, temperature=None):
-    client = get_nvidia_client()
-    if not client: return "❌ Please provide a valid NVIDIA API key."
-    try:
-        response = client.chat.completions.create(
-            model=st.session_state.get("selected_model"),
-            messages=messages,
-            temperature=temperature or st.session_state.get("temperature", 0.7),
-            max_tokens=2048,
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"❌ NVIDIA API Error: {str(e)}"
+    with col1:
+        search = st.text_input("Keywords", placeholder="React, Remote, Amazon...", label_visibility="collapsed")
+
+    with col2:
+        location = st.selectbox("Location", ["All Locations", "Remote", "New York", "San Francisco", "North Mankato, MN"], label_visibility="collapsed")
+
+    with col3:
+        job_type = st.selectbox("Type", ["All Types", "Full-time", "Contract", "Part-time"], label_visibility="collapsed")
+
+    with col4:
+        # Changed min value to 0 so hourly jobs don't get filtered out immediately
+        min_salary = st.slider("Min Salary/Rate", 0, 200, 0, format="%d", help="Filters both hourly ($) and yearly (k)")
+
+# Filter logic
+df = st.session_state.jobs.copy()
+
+if search:
+    df = df[
+        df['title'].str.contains(search, case=False) | 
+        df['skills'].str.contains(search, case=False) | 
+        df['company'].str.contains(search, case=False) |
+        df['location'].str.contains(search, case=False)
+    ]
+
+if location != "All Locations":
+    df = df[df['location'].str.contains(location, case=False)]
+
+if job_type != "All Types":
+    df = df[df['type'] == job_type]
 
 def extract_min_salary(s):
-    nums = re.findall(r'\d+', str(s))
+    # Extracts the first number it finds, handling both hourly and yearly
+    nums = re.findall(r'\d+', s.replace('k', '').replace('$', ''))
     return int(nums[0]) if nums else 0
 
-# ====================== MAIN UI ======================
-st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
+df = df[df['salary'].apply(extract_min_salary) >= min_salary]
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🔍 Discover Jobs", 
-    "💬 AI Job Assistant", 
-    "📝 Profile",
-    "🔑 NVIDIA API Guide"
-])
+# ====================== PLACEHOLDER ======================
+# As requested: A placeholder injected right before the job tiles
+st.markdown("""
+<div class="demo-placeholder">
+    <div><b>🛠️ UI PLACEHOLDER:</b> This space is reserved for a featured sponsor banner, AI-driven career insights, or a custom hero component before the main job feed begins.</div>
+</div>
+""", unsafe_allow_html=True)
 
-# ==================== TAB 1: DISCOVER JOBS ====================
-with tab1:
-    st.markdown("### ■ Discover Your Next Role")
-    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
-    with col1: search = st.text_input("■ Search...", placeholder="Amazon Flex, warehouse")
-    with col2: location_filter = st.selectbox("■ Location", ["All Locations", "North Mankato"])
-    with col3: job_type = st.selectbox("■ Type", ["All Types", "Part Time >19 hours a week"])
-    with col4: min_salary = st.slider("■ Min Hourly ($)", 0, 200, 15)
+# ====================== JOB TILES ======================
+st.markdown(f"### ⚡ Top Matches ({len(df)})")
+
+if df.empty:
+    st.warning("No opportunities match your current matrix parameters. Try expanding your search.")
+else:
+    # Sort by match score to prioritize the best fits (like the Amazon demo job)
+    df = df.sort_values(by="match", ascending=False)
     
-    df = st.session_state.jobs.copy()
-    if search:
-        df = df[df['title'].str.contains(search, case=False, na=False) | 
-                df['company'].str.contains(search, case=False, na=False) | 
-                df['description'].str.contains(search, case=False, na=False)]
-    if location_filter != "All Locations":
-        df = df[df['location'].str.contains(location_filter, case=False, na=False)]
-    if job_type != "All Types":
-        df = df[df['type'] == job_type]
-    df = df[df['salary'].apply(extract_min_salary) >= min_salary]
-    
-    st.caption(f"Showing **{len(df)}** opportunities")
-    if df.empty:
-        st.warning("No jobs match your filters.")
-    else:
-        for _, job in df.iterrows():
-            # Replaced st.html with st.markdown(..., unsafe_allow_html=True) to prevent tab bleeding
+    for _, job in df.iterrows():
+        with st.container():
             st.markdown(f"""
             <div class="job-card">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
                         <div class="job-title">{job['title']}</div>
-                        <div class="company">■ {job['company']}</div>
+                        <div class="company">🏢 {job['company']}</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:1.2rem; font-weight:700; color:#00ff9d;">{job['salary']}</div>
-                        <div style="color:#8899cc;">{job['location']}</div>
+                        <div style="font-size:1.4rem; font-weight:800; color:#00ff9d; letter-spacing: 1px;">{job['salary']}</div>
+                        <div style="font-size:0.9rem; color:#a0c4ff; margin-top: 4px;">📍 {job['location']}</div>
                     </div>
                 </div>
-                <div style="margin: 20px 0 16px 0; display: flex; flex-wrap: wrap; gap: 12px;">
-                    <span class="badge">{job['type']}</span>
-                    <span class="badge">Posted {job['posted']}</span>
-                    <span class="badge">Match: {job.get('match', 85)}%</span>
+                <div class="badge-container">
+                    <span class="badge match">🎯 {job['match']}% Match</span>
+                    <span class="badge">💼 {job['type']}</span>
+                    <span class="badge">⏱️ Posted {job['posted']}</span>
                 </div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Description:</strong> {job.get('description','')}</div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:12px;"><strong>Requirements:</strong> {job.get('requirements','')}</div>
-                <div style="color:#b0b8ff; line-height:1.5; margin-bottom:16px;"><strong>Benefits:</strong> {job.get('benefits','')}</div>
-                <div style="display:flex; gap:24px; font-size:0.92rem; color:#8899cc; border-top:1px solid #334477; padding-top:12px;">
-                    <div><strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">Apply Now</a></div>
-                    <div><strong>Phone:</strong> {job.get('phone','N/A')}</div>
+                <div style="color:#b0b8ff; font-size:1rem; margin-top:12px; border-top: 1px solid rgba(110,140,255,0.1); padding-top: 12px;">
+                    <strong>Tech Stack / Skills:</strong> {job['skills']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-# ==================== TAB 2: AI JOB ASSISTANT ====================
-with tab2:
-    st.markdown("### 💬 AI Job Assistant — Multi-Agent Studio")
-    
-    # === Aligned Specialist Selector + New Conversation Button ===
-    col_select, col_new = st.columns([4, 1.2])
-    with col_select:
-        selected_agent_name = st.selectbox(
-            "Select Specialist", 
-            list(AGENTS.keys()), 
-            key="agent_select",
-            label_visibility="visible"
-        )
-    with col_new:
-        st.markdown("<br>", unsafe_allow_html=True)  # Vertical alignment fix
-        if st.button("🗑️ New Conversation", use_container_width=True):
-            st.session_state.chat_history = []
-            st.rerun()
-    
-    agent = AGENTS[selected_agent_name]
-    
-    # Agent Info Card
-    st.markdown(f"""
-    <div class="agent-info">
-        <div class="agent-info-emoji">{agent['emoji']}</div>
-        <div>
-            <div class="agent-title">{selected_agent_name}</div>
-            <p style="color:#b0b8ff; margin: 4px 0 0 0;">{agent['description']}</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Chat Section
-    st.subheader("Chat with Agent")
-    chat_container = st.container()
-    with chat_container:
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                st.markdown(f'<div class="chat-message user-msg"><strong>You</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="chat-message ai-msg"><strong>{selected_agent_name}</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
-    
-    if prompt := st.chat_input("Describe the job or what you need help with..."):
-        st.session_state.chat_history.append({"role": "user", "content": prompt})
-        
-        with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
-            context = {
-                "current_jobs": st.session_state.jobs.to_dict(orient="records"),
-                "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
-                "candidate_extra": st.session_state.candidate_profile
-            }
+            col_a, col_b, col_c = st.columns([1, 1, 4])
+            with col_a:
+                # Using Streamlit's new button types for a cooler look
+                if st.button("⚡ Apply Now", key=f"apply_{job['id']}", type="primary", use_container_width=True):
+                    st.session_state.applications.append({
+                        "job": job['title'],
+                        "company": job['company'],
+                        "date": datetime.now()
+                    })
+                    # Toast is much cooler/modern than balloons
+                    st.toast(f"Application securely transmitted to {job['company']}!", icon="🚀")
             
-            full_prompt = f"""
-            Context:
-            {json.dumps(context, indent=2)}
-            
-            User request: {prompt}
-            """
-            
-            messages = [
-                {"role": "system", "content": agent["system"]},
-                {"role": "user", "content": full_prompt}
-            ]
-            
-            response = call_nvidia_llm(messages)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-        
-        st.rerun()
+            with col_b:
+                st.button("Save", key=f"save_{job['id']}", use_container_width=True)
 
-# ==================== TAB 3: PROFILE ====================
-with tab3:
-    st.markdown("### 📝 Profile")
-    profile_form = st.form("profile_form")
-    profile_form.subheader("Update Your Profile")
-    
-    name = profile_form.text_input("Name", value=st.session_state.profile['name'].iloc[0])
-    location = profile_form.text_input("Location", value=st.session_state.profile['location'].iloc[0])
-    experience = profile_form.text_area("Experience", value=st.session_state.profile['experience'].iloc[0])
-    skills = profile_form.text_area("Skills", value=st.session_state.profile['skills'].iloc[0])
-    education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0])
-    certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0])
-    
-    submit_button = profile_form.form_submit_button("Save Profile")
-    if submit_button:
-        st.session_state.profile['name'] = name
-        st.session_state.profile['location'] = location
-        st.session_state.profile['experience'] = experience
-        st.session_state.profile['skills'] = skills
-        st.session_state.profile['education'] = education
-        st.session_state.profile['certifications'] = certifications
-        st.session_state.candidate_profile = {"name": name, "location": location}
-        st.success("Profile saved!")
-    
-    st.download_button("Download Profile", data=st.session_state.profile.to_csv(index=False), file_name="profile.csv")
-
-# ==================== TAB 4: NVIDIA API GUIDE ====================
-with tab4:
-    st.markdown("### 🔑 How to Create Your NVIDIA API Key")
-    st.markdown("Follow these steps to get your **free** NVIDIA NIM API key:")
-
-    st.markdown("""
-    <div class="guide-step">
-        <h4>1. Create / Sign In</h4>
-        <p>Go to <a href="https://build.nvidia.com/" target="_blank">build.nvidia.com</a> or <a href="https://ngc.nvidia.com/" target="_blank">ngc.nvidia.com</a> and sign in with your NVIDIA account (or create one).</p>
-    </div>
-
-    <div class="guide-step">
-        <h4>2. Go to API Keys</h4>
-        <p>Click your profile icon → <strong>Settings</strong> → <strong>API Keys</strong><br>
-        Or visit <a href="https://org.ngc.nvidia.com/account/api-keys" target="_blank">org.ngc.nvidia.com/account/api-keys</a></p>
-    </div>
-
-    <div class="guide-step">
-        <h4>3. Generate Key</h4>
-        <p>Click <strong>Generate Personal Key</strong> (or <strong>Generate API Key</strong>).</p>
-    </div>
-
-    <div class="guide-step">
-        <h4>4. Configure</h4>
-        <p>Add a description, select <strong>NGC Catalog</strong> under Services, and set expiration (Never expires is fine for personal use).</p>
-    </div>
-
-    <div class="guide-step">
-        <h4>5. Copy Key</h4>
-        <p>Copy the key (it starts with <code>nvapi-...</code>). Then paste it in the sidebar on the left.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.success("✅ After pasting the key in the sidebar, you can immediately start using the AI assistants!")
-    st.info("💡 Tip: The key is stored only in your current browser session.")
-
-st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
+# ====================== FOOTER ======================
+st.markdown("---")
+st.markdown(
+    "<p style='text-align:center; color:#4a5d9e; font-size:0.85rem; font-family: monospace;'>"
+    "SYSTEM.ALT_INDEED.V2 // 2026 // END OF FEED"
+    "</p>",
+    unsafe_allow_html=True
+)
