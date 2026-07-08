@@ -65,7 +65,7 @@ if "jobs" not in st.session_state:
         {
             "id": str(uuid.uuid4()),
             "title": "Amazon Flex - X",
-            "company": "Amazon",
+            "company": "Amazon - WMN7",
             "location": "North Mankato, MN 56003",
             "salary": "$19/hr",
             "posted": "2026-07-04",
