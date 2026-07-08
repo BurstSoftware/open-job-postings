@@ -34,9 +34,9 @@ st.markdown("""
         border: 1px solid #4a5d9e; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
     }
-    .job-title { font-size: 1.8rem; font-weight: 700; color: #a0c4ff; margin-bottom: 6px; }
-    .salary { font-size: 1.6rem; font-weight: 700; color: #00ff9d; }
-    .company { color: #8f9eff; font-weight: 600; font-size: 1.15rem; }
+    .job-title { font-size: 1.75rem; font-weight: 700; color: #a0c4ff; margin-bottom: 6px; }
+    .salary { font-size: 1.65rem; font-weight: 700; color: #00ff9d; }
+    .company { color: #8f9eff; font-weight: 600; font-size: 1.1rem; }
     .badge { 
         display: inline-block; 
         background: #3a4a8c; 
@@ -47,13 +47,8 @@ st.markdown("""
         margin-right: 10px; 
         margin-bottom: 8px; 
     }
-    .header-title { 
-        font-size: 2.8rem; 
-        background: linear-gradient(90deg, #a0c4ff, #c0d0ff); 
-        -webkit-background-clip: text; 
-        -webkit-text-fill-color: transparent; 
-        font-weight: 800; 
-    }
+    .header-title { font-size: 2.8rem; background: linear-gradient(90deg, #a0c4ff, #c0d0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+    
     .apply-btn {
         background: linear-gradient(90deg, #00ff9d, #00e68a);
         color: #0f0f23;
@@ -109,14 +104,6 @@ if "jobs" not in st.session_state:
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-
-# ====================== AGENTS ======================
-AGENTS = {
-    "🎯 Job Match Analyst": {"emoji": "📊", "description": "Analyzes how well a job matches your profile.", "system": "You are an expert job-market analyst."},
-    "📝 CV Tailor": {"emoji": "📄", "description": "Expert CV writer that tailors your resume.", "system": "You are a world-class CV writer."},
-    "✉️ Cover Letter Writer": {"emoji": "💌", "description": "Creates personalized cover letters.", "system": "You write compelling cover letters."},
-    "🧠 Interview Coach": {"emoji": "🎤", "description": "Prepares you for interviews.", "system": "You are a STAR-method interview coach."},
-}
 
 # ====================== HELPER FUNCTIONS ======================
 def get_nvidia_client():
@@ -188,7 +175,7 @@ with tab1:
                     </div>
                     <div style="text-align:right;">
                         <div class="salary">{job['salary']}</div>
-                        <div style="color:#8899cc; margin-top: 4px;">{job['location']}</div>
+                        <div style="color:#8899cc; margin-top: 6px;">{job['location']}</div>
                     </div>
                 </div>
                 
@@ -211,17 +198,17 @@ with tab1:
                     {job.get('benefits','')}
                 </div>
                 
-                <div style="border-top: 1px solid #334477; padding-top: 16px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                <div style="border-top: 1px solid #334477; padding-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                     <div>
                         <strong>Website:</strong> <a href="{job.get('website','#')}" target="_blank" style="color:#6e8cff;">amazon.com/getpaid</a><br>
                         <strong>Phone:</strong> {job.get('phone','N/A')}
                     </div>
-                    <div style="text-align:right;">
+                    <div>
                         <a href="{job.get('website','#')}" target="_blank" class="apply-btn">🚀 Apply Now</a>
                     </div>
                 </div>
                 
-                <div style="margin-top: 16px; color:#8899cc;">
+                <div style="margin-top: 16px; color:#8899cc; font-size: 0.95rem;">
                     Referred By: {job.get('referrer','N/A')}
                 </div>
             </div>
