@@ -157,7 +157,6 @@ AGENTS = {
 # ====================== HELPER FUNCTIONS ======================
 def get_nvidia_client():
     try:
-        # Uses key from st.secrets only
         key = st.secrets.get("NVIDIA_API_KEY") or st.secrets.get("nvidia", {}).get("api_key")
         if not key:
             st.warning("⚠️ NVIDIA API Key is missing. Please add it in Streamlit Secrets.")
@@ -173,7 +172,7 @@ def call_nvidia_llm(messages):
         return "❌ Please provide a valid NVIDIA API key in Streamlit Secrets."
     try:
         response = client.chat.completions.create(
-            model="meta/llama-3.1-70b-instruct",   # Default model
+            model="meta/llama-3.1-70b-instruct",
             messages=messages,
             temperature=0.7,
             max_tokens=2048,
@@ -189,9 +188,10 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🔍 Discover Jobs", 
-    "💬 AI Job Assistant"
+    "💬 AI Job Assistant",
+    "🚀 Submit a Job"
 ])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
@@ -308,4 +308,44 @@ with tab2:
         
         st.rerun()
 
-st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
+# ==================== TAB 3: SUBMIT JOB ====================
+with tab3:
+    st.markdown("---")
+    st.subheader("🚀 Quickest Way: Submit via Google Form")
+
+    st.markdown("""
+    <div style="text-align:center; margin: 30px 0;">
+        <a href="https://forms.gle/Yjzx9cbrMWZ6mrA58" target="_blank">
+            <button style="background:#00ff9d; color:#0f0f23; font-size:1.3rem; font-weight:700; 
+                           padding:18px 48px; border:none; border-radius:50px; cursor:pointer;">
+                📋 Submit Job Posting Now ($49/month)
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.caption("You will be redirected to a secure Google Form. After submission we will contact you to confirm details and send the invoice.")
+
+    st.markdown("### Required Information")
+    st.markdown("""
+    • Job Title  
+    • Company Name  
+    • Work Location  
+    • Salary / Compensation  
+    • Job Posted Date  
+    • Job Type  
+    • Website / Application Link  
+    • Phone Number  
+    • Job Description  
+    • Job Requirements  
+    • Job Benefits  
+    • Job Referrer (optional)  
+    • Your Name (contact)  
+    • Your Phone Number  
+    • Your Email Address  
+    • Best Time to Reach You
+    """)
+
+    st.info("💡 All submissions are manually reviewed for quality before going live.")
+
+st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant • Employers: $49/month listings")
