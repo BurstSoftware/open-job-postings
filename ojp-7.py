@@ -84,19 +84,16 @@ st.markdown("""
 # ====================== HELPER: Get NVIDIA API Key ======================
 def get_nvidia_api_key():
     """Priority: Sidebar manual override > st.secrets > Environment variable"""
-    # Manual override from sidebar
     if st.session_state.get("nvidia_manual_key"):
         return st.session_state.nvidia_manual_key
     
-    # From Secrets (Cloud or local secrets.toml)
     try:
         key = st.secrets.get("NVIDIA_API_KEY") or st.secrets.get("nvidia", {}).get("api_key")
         if key:
             return key
     except:
-        pass  # secrets not configured yet
+        pass
     
-    # Fallback to environment variable
     return None
 
 # ====================== SIDEBAR ======================
@@ -106,7 +103,6 @@ with st.sidebar:
     st.divider()
     st.subheader("🔑 NVIDIA NIM Settings")
     
-    # Sidebar input for manual override (useful locally or quick testing)
     manual_key = st.text_input(
         "NVIDIA API Key (nvapi-...)",
         type="password",
@@ -129,10 +125,12 @@ with st.sidebar:
     
     st.divider()
     if st.button("🗑️ Clear All Data", use_container_width=True):
-        for key in ["jobs", "chat_history", "profile", "applications", "candidate_profile", "nvidia_manual_key"]:
+        for key in ["jobs", "chat_history", "nvidia_manual_key"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
+    
+    st.markdown("For support, [burstsoftwaredevelopment@gmail.com](mailto:burstsoftwaredevelopment@gmail.com)")
     st.info("Powered by NVIDIA NIM", icon="ℹ️")
 
 # ====================== INITIAL DATA ======================
@@ -156,15 +154,6 @@ if "jobs" not in st.session_state:
         }
     ]
     st.session_state.jobs = pd.DataFrame(jobs_list)
-
-if "profile" not in st.session_state:
-    st.session_state.profile = pd.DataFrame([{"name": "", "location": "", "experience": "", "skills": "", "education": "", "certifications": ""}])
-
-if "candidate_profile" not in st.session_state:
-    st.session_state.candidate_profile = {}
-
-if "applications" not in st.session_state:
-    st.session_state.applications = pd.DataFrame(columns=["Date", "Company", "Role", "Status", "Fit Score"])
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -233,11 +222,9 @@ def extract_min_salary(s):
 # ====================== MAIN UI ======================
 st.markdown('<h1 class="header-title">Open Job Postings</h1>', unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2 = st.tabs([
     "🔍 Discover Jobs", 
-    "💬 AI Job Assistant", 
-    "📝 Profile",
-    "🔑 NVIDIA API Guide"
+    "💬 AI Job Assistant"
 ])
 
 # ==================== TAB 1: DISCOVER JOBS ====================
@@ -333,10 +320,9 @@ with tab2:
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
         with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
+            # Minimal context (profile removed)
             context = {
-                "current_jobs": st.session_state.jobs.to_dict(orient="records"),
-                "candidate_profile": st.session_state.profile.iloc[0].to_dict(),
-                "candidate_extra": st.session_state.candidate_profile
+                "current_jobs": st.session_state.jobs.to_dict(orient="records")
             }
             
             full_prompt = f"""
@@ -355,48 +341,5 @@ with tab2:
             st.session_state.chat_history.append({"role": "assistant", "content": response})
         
         st.rerun()
-
-# ==================== TAB 3: PROFILE ====================
-with tab3:
-    st.markdown("### 📝 Profile")
-    profile_form = st.form("profile_form")
-    profile_form.subheader("Update Your Profile")
-    
-    name = profile_form.text_input("Name", value=st.session_state.profile['name'].iloc[0])
-    location = profile_form.text_input("Location", value=st.session_state.profile['location'].iloc[0])
-    experience = profile_form.text_area("Experience", value=st.session_state.profile['experience'].iloc[0])
-    skills = profile_form.text_area("Skills", value=st.session_state.profile['skills'].iloc[0])
-    education = profile_form.text_area("Education", value=st.session_state.profile['education'].iloc[0])
-    certifications = profile_form.text_area("Certifications", value=st.session_state.profile['certifications'].iloc[0])
-    
-    submit_button = profile_form.form_submit_button("Save Profile")
-    if submit_button:
-        st.session_state.profile['name'] = name
-        st.session_state.profile['location'] = location
-        st.session_state.profile['experience'] = experience
-        st.session_state.profile['skills'] = skills
-        st.session_state.profile['education'] = education
-        st.session_state.profile['certifications'] = certifications
-        st.session_state.candidate_profile = {"name": name, "location": location}
-        st.success("Profile saved!")
-    
-    st.download_button("Download Profile", data=st.session_state.profile.to_csv(index=False), file_name="profile.csv")
-
-# ==================== TAB 4: NVIDIA API GUIDE ====================
-with tab4:
-    st.markdown("### 🔑 How to Set Up Your NVIDIA API Key Securely")
-    st.markdown("**Recommended:** Use **Secrets** (encrypted & secure).")
-    
-    st.markdown("""
-    **For Streamlit Community Cloud:**
-    1. Go to your app → Settings → Secrets
-    2. Paste:
-    ```toml
-    NVIDIA_API_KEY = "nvapi-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    ```
-    3. Save (takes ~1 minute to apply)
-    """)
-    
-    st.info("💡 You can still use the sidebar field for quick testing or overrides.")
 
 st.caption("Open Job Postings • NVIDIA NIM + Multi-Agent AI Assistant")
