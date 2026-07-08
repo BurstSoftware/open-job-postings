@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import uuid
 import re
 import json
@@ -81,51 +80,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ====================== HELPER: Get NVIDIA API Key ======================
-def get_nvidia_api_key():
-    """Priority: Sidebar manual override > st.secrets > Environment variable"""
-    if st.session_state.get("nvidia_manual_key"):
-        return st.session_state.nvidia_manual_key
-    
-    try:
-        key = st.secrets.get("NVIDIA_API_KEY") or st.secrets.get("nvidia", {}).get("api_key")
-        if key:
-            return key
-    except:
-        pass
-    
-    return None
-
 # ====================== SIDEBAR ======================
 with st.sidebar:
     st.markdown("# ■ **Open Job Postings**")
     st.caption("Modern jobs. Zero spam. AI Powered.")
     st.divider()
-    st.subheader("🔑 NVIDIA NIM Settings")
     
-    manual_key = st.text_input(
-        "NVIDIA API Key (nvapi-...)",
-        type="password",
-        value="",
-        help="Paste here to override Secrets (optional)"
-    )
-    
-    if manual_key:
-        st.session_state.nvidia_manual_key = manual_key
-        st.success("✅ Manual key override active!", icon="🔑")
-    else:
-        if "nvidia_manual_key" in st.session_state:
-            del st.session_state.nvidia_manual_key
-        st.info("Using key from **Secrets**", icon="🔐")
-    
-    model_options = ["meta/llama-3.1-70b-instruct", "meta/llama-3.1-405b-instruct", 
-                     "nvidia/nemotron-4-340b-instruct", "deepseek-ai/deepseek-v3"]
-    st.session_state.selected_model = st.selectbox("Select Model", model_options, index=0)
-    st.slider("Temperature", 0.0, 1.0, 0.7, 0.05, key="temperature")
-    
-    st.divider()
     if st.button("🗑️ Clear All Data", use_container_width=True):
-        for key in ["jobs", "chat_history", "nvidia_manual_key"]:
+        for key in ["jobs", "chat_history"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
@@ -194,21 +156,26 @@ AGENTS = {
 
 # ====================== HELPER FUNCTIONS ======================
 def get_nvidia_client():
-    api_key = get_nvidia_api_key()
-    if not api_key:
-        st.warning("⚠️ NVIDIA API Key is missing. Add it in **Secrets** or sidebar.")
+    try:
+        # Uses key from st.secrets only
+        key = st.secrets.get("NVIDIA_API_KEY") or st.secrets.get("nvidia", {}).get("api_key")
+        if not key:
+            st.warning("⚠️ NVIDIA API Key is missing. Please add it in Streamlit Secrets.")
+            return None
+        return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=key)
+    except Exception:
+        st.warning("⚠️ NVIDIA API Key is missing. Please add it in Streamlit Secrets.")
         return None
-    return OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=api_key)
 
-def call_nvidia_llm(messages, temperature=None):
+def call_nvidia_llm(messages):
     client = get_nvidia_client()
     if not client:
-        return "❌ Please provide a valid NVIDIA API key in Secrets or sidebar."
+        return "❌ Please provide a valid NVIDIA API key in Streamlit Secrets."
     try:
         response = client.chat.completions.create(
-            model=st.session_state.get("selected_model"),
+            model="meta/llama-3.1-70b-instruct",   # Default model
             messages=messages,
-            temperature=temperature or st.session_state.get("temperature", 0.7),
+            temperature=0.7,
             max_tokens=2048,
         )
         return response.choices[0].message.content
@@ -320,7 +287,6 @@ with tab2:
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         
         with st.spinner(f"{agent['emoji']} {selected_agent_name} is thinking..."):
-            # Minimal context (profile removed)
             context = {
                 "current_jobs": st.session_state.jobs.to_dict(orient="records")
             }
